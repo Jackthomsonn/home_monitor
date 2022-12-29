@@ -83,7 +83,11 @@ defmodule HomeMonitor.Hm.HmProc do
   defp report_temperature(pid, topic) do
     temp = hal_system().get_temperature()
 
-    case JSON.encode(%{temperature: temp}) do
+    now =
+      DateTime.utc_now()
+      |> DateTime.to_iso8601()
+
+    case JSON.encode(%{temperature: temp, timestamp: now}) do
       {:ok, payload} ->
         :emqtt.publish(pid, topic, payload)
 

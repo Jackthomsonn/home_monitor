@@ -14,6 +14,8 @@ config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
 
 config :nerves, source_date_epoch: "1671808184"
 
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 if Mix.target() == :host do
   import_config "host.exs"
 else

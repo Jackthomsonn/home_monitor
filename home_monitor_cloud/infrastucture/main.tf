@@ -88,6 +88,16 @@ resource "google_bigquery_table" "home_monitor" {
         "name": "temperature",
         "type": "FLOAT",
         "description": "Temperature in degrees celsius"
+      },
+      {
+        "name": "client_id",
+        "type": "STRING",
+        "description": "Client ID"
+      },
+      {
+        "name": "timestamp",
+        "type": "STRING",
+        "description": "The timestamp at which the temperature was recorded on the device"
       }
     ]
     EOF
@@ -102,7 +112,7 @@ resource "google_pubsub_schema" "house_monitor_schema" {
   name       = "house-monitor-schema"
   project    = var.project
   type       = "AVRO"
-  definition = "{\r\n  \"type\" : \"record\",\r\n  \"name\" : \"HouseMonitor\",\r\n  \"fields\" : [\r\n    {\r\n      \"name\" : \"temperature\",\r\n      \"type\" : \"float\"\r\n    }\r\n  ]\r\n}"
+  definition = "{\r\n  \"type\" : \"record\",\r\n  \"name\" : \"HouseMonitor\",\r\n  \"fields\" : [\r\n    {\r\n      \"name\" : \"temperature\",\r\n      \"type\" : \"float\"\r\n    },\r\n    {\r\n      \"name\" : \"client_id\",\r\n      \"type\" : \"string\"\r\n    },\r\n    {\r\n      \"name\" : \"timestamp\",\r\n      \"type\" : \"string\"\r\n    }\r\n  ]\r\n}"
 }
 
 resource "google_pubsub_topic" "topic" {
