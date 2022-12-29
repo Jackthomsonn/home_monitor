@@ -2,6 +2,7 @@
 
 ## Technologies used
 
-- Elixir
-- NodeJS (Typescript backend)
+- Elixir for the firmware running the Raspberry PI 4
+- Go lang for serverless functions (Hosted in GCP)
 - Terraform IAC
+- EMQTT for the MQTT broker client
