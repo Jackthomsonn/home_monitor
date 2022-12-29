@@ -30,7 +30,8 @@ module "project_services" {
     "sqladmin.googleapis.com",
     "compute.googleapis.com",
     "cloudfunctions.googleapis.com",
-    "cloudbuild.googleapis.com"
+    "cloudbuild.googleapis.com",
+    "artifactregistry.googleapis.com"
   ]
 
   disable_services_on_destroy = true
