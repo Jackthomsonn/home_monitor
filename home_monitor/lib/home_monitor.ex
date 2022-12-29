@@ -1,0 +1,2 @@
+defmodule HomeMonitor do
+end

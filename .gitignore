@@ -1,0 +1,9 @@
+home_monitor_cloud/infrastucture/.terraform
+home_monitor/_build
+home_monitor/deps
+home_monitor/.elixir_ls
+.DS_Store
+home_monitor_cloud/functions/node_modules/
+home_monitor/config/runtime.exs
+home_monitor_cloud/functions/dist
+home_monitor/config/target.exs
