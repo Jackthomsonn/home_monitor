@@ -61,15 +61,6 @@ resource "google_compute_network" "vpc_network" {
   ]
 }
 
-resource "google_compute_network_peering" "emqxx_peering" {
-  name         = "emqxx-peering"
-  network      = google_compute_network.vpc_network.self_link
-  peer_network = "projects/emq-x-cloud-324802/global/networks/e4bf24df"
-  depends_on = [
-    google_compute_network.vpc_network
-  ]
-}
-
 ##### Big Query
 resource "google_bigquery_dataset" "home_monitor" {
   dataset_id = "home_monitor_dataset"
@@ -169,13 +160,18 @@ resource "google_pubsub_subscription" "topic_dead_letter_sub" {
 }
 
 ##### Service Accounts
-module "emqxx_service_account" {
-  source                       = "./modules/service_account"
-  project                      = var.project
-  service_account_id           = "emqxx-service-account"
-  service_account_display_name = "EMQXX Service Account"
+resource "google_service_account" "emqx_service_account" {
+  account_id   = "emqx-service-account"
+  display_name = "EMQX Service Account"
+  description  = "Service account for EMQX"
+  project      = var.project
+}
+
+resource "google_service_account_key" "emqx_service_account_key" {
+  service_account_id = google_service_account.emqx_service_account.name
+  public_key_type    = "TYPE_X509_PEM_FILE"
   depends_on = [
-    module.project_services
+    google_service_account.emqx_service_account
   ]
 }
 
@@ -215,11 +211,11 @@ resource "google_project_iam_member" "editor" {
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
 
-# Assign the EMQXX service account the pubsub publisher role
-resource "google_project_iam_member" "emqxx_pubsub_publisher_iam" {
+# Assign the EMQX service account the pubsub publisher role
+resource "google_project_iam_member" "emqx_pubsub_publisher_iam" {
   project = var.project
   role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:${module.emqxx_service_account.email}"
+  member  = "serviceAccount:${google_service_account.emqx_service_account.email}"
   depends_on = [
     module.project_services
   ]

@@ -1,4 +1,4 @@
-output "emqxx_service_account_key" {
-  value     = module.emqxx_service_account.private_key
+output "emqx_service_account_key" {
+  value     = google_service_account_key.emqx_service_account_key.private_key
   sensitive = true
 }
