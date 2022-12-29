@@ -4,12 +4,20 @@ terraform {
       source  = "hashicorp/google"
       version = "4.47.0"
     }
+    sops = {
+      source  = "carlpett/sops"
+      version = "~> 0.5"
+    }
   }
 
   backend "gcs" {
     bucket = "home-monitor-terraform-state"
     prefix = "terraform/state"
   }
+}
+
+data "sops_file" "secrets" {
+  source_file = "../secrets/secrets.yaml"
 }
 
 provider "google-beta" {
@@ -59,42 +67,6 @@ resource "google_compute_network_peering" "emqxx_peering" {
   peer_network = "projects/emq-x-cloud-324802/global/networks/e4bf24df"
   depends_on = [
     google_compute_network.vpc_network
-  ]
-}
-
-resource "google_compute_network_firewall_policy" "home_monitor_network_firewall_policy" {
-  name        = "home-monitor-firewall-policy"
-  project     = var.project
-  description = "This is a simple firewall policy for the home-monitor project"
-}
-
-resource "google_compute_network_firewall_policy_rule" "primary" {
-  firewall_policy = google_compute_network_firewall_policy.home_monitor_network_firewall_policy.name
-  action          = "allow"
-  direction       = "INGRESS"
-  priority        = 1000
-  rule_name       = "emqxx rule"
-  description     = "Allow traffic from emqxx"
-  project         = var.project
-  match {
-    src_ip_ranges = ["10.25.27.0/24"]
-    layer4_configs {
-      ip_protocol = "all"
-    }
-  }
-  disabled = false
-  depends_on = [
-    google_compute_network_firewall_policy.home_monitor_network_firewall_policy
-  ]
-}
-
-resource "google_compute_network_firewall_policy_association" "primary" {
-  name              = "home-monitor-firewall-policy to VPC network"
-  attachment_target = google_compute_network.vpc_network.id
-  firewall_policy   = google_compute_network_firewall_policy.home_monitor_network_firewall_policy.name
-  project           = var.project
-  depends_on = [
-    google_compute_network_firewall_policy.home_monitor_network_firewall_policy
   ]
 }
 
@@ -242,3 +214,120 @@ resource "google_project_iam_member" "emqxx_pubsub_publisher_iam" {
     module.project_services
   ]
 }
+
+##### KMS
+resource "google_kms_key_ring" "home_monitor_keyring" {
+  name     = "home-monitor-keyring"
+  project  = var.project
+  location = "global"
+}
+
+resource "google_kms_crypto_key" "home_monitor_key" {
+  name     = "home-monitor-key"
+  key_ring = google_kms_key_ring.home_monitor_keyring.id
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+##### Firewall
+resource "google_compute_firewall" "ssh_rule" {
+  project     = var.project
+  name        = "allow-ssh"
+  network     = google_compute_network.vpc_network.name
+  description = "Allow SSH inbound traffic from all IP ranges"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+}
+
+resource "google_compute_firewall" "emqx_dashboard_rule" {
+  project     = var.project
+  name        = "emqx-dashboard"
+  network     = google_compute_network.vpc_network.name
+  description = "Allow ingress traffic to emqx dashboard"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["18083"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+}
+
+resource "google_compute_firewall" "emqx_tcp" {
+  project     = var.project
+  name        = "emqx-tcp"
+  network     = google_compute_network.vpc_network.name
+  description = "Allow ingress traffic to emqx tcp"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["1883"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+}
+
+##### Compute Engine (EMQX)
+resource "google_service_account" "emqx_instance_service_account" {
+  account_id   = "emqx-instance-service-account"
+  project      = var.project
+  display_name = "EMQX Instance Service Account"
+}
+
+resource "google_compute_instance" "emqx_instance" {
+  name         = "emqx-instance"
+  project      = var.project
+  zone         = var.zone
+  description  = "The EMQX instance"
+  machine_type = "e2-medium"
+
+  lifecycle {
+    ignore_changes = [
+      labels,
+      resource_policies,
+    ]
+  }
+
+  can_ip_forward = false
+
+  tags = ["http-server"]
+
+  metadata_startup_script = <<-EOF
+  docker pull emqx/emqx-ee:4.4.12 &&
+  docker run -d --name emqx -p 1883:1883 -p 8083:8083 -p 8084:8084 -p 8883:8883 -p 18083:18083 emqx/emqx-ee:4.4.12
+  EOF
+
+
+  metadata = {
+    ssh-keys = "user:${data.sops_file.secrets.data["ssh_key"]}"
+  }
+
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+  }
+
+  boot_disk {
+    initialize_params {
+      image = "projects/cos-cloud/global/images/cos-stable-101-17162-40-42"
+    }
+  }
+
+  network_interface {
+    network = google_compute_network.vpc_network.name
+    access_config {}
+  }
+
+  service_account {
+    email  = google_service_account.emqx_instance_service_account.email
+    scopes = ["cloud-platform"]
+  }
+}
+
