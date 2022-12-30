@@ -287,6 +287,12 @@ resource "google_service_account" "emqx_instance_service_account" {
   display_name = "EMQX Instance Service Account"
 }
 
+resource "google_compute_address" "emqx_static_ip" {
+  name    = "ipv4-address"
+  project = var.project
+  region  = var.region
+}
+
 resource "google_compute_instance" "emqx_instance" {
   name         = "emqx-instance"
   project      = var.project
@@ -328,7 +334,9 @@ resource "google_compute_instance" "emqx_instance" {
 
   network_interface {
     network = google_compute_network.vpc_network.name
-    access_config {}
+    access_config {
+      nat_ip = google_compute_address.emqx_static_ip.address
+    }
   }
 
   service_account {
