@@ -5,4 +5,4 @@
 - Elixir for the firmware running the Raspberry PI 4
 - Go lang for serverless functions (Hosted in GCP)
 - Terraform IAC
-- EMQTT for the MQTT broker client
+- EMQX for the MQTT broker client (Hosted on it's own compute within the VPC)
