@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+type PerformCheckRequest struct {
+  IntervalInMinutes *int `json:"interval_in_minutes"`
+}
+
 type Carbonintensity struct {
   Index     string `json:"index"`
   Forecast  int    `json:"forecast"`
@@ -37,17 +41,33 @@ type Response struct {
   Index   string `json:"index"`
   Forecast int    `json:"forecast"`
   Unit    string `json:"unit"`
+  From    string `json:"from"`
+  To      string `json:"to"`
 }
 
 func PerformCheck(w http.ResponseWriter, r *http.Request) {
+  var req PerformCheckRequest
+  decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&req)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+  if req.IntervalInMinutes == nil {
+    http.Error(w, "interval_in_minutes is required", http.StatusBadRequest)
+    return
+  }
+
   utc := time.Now().UTC().Truncate(time.Second)
   
   now := utc.Format(time.RFC3339)
 
-  nowPlus30Minutes := utc.Add(time.Minute * 30).Format(time.RFC3339)
+  nowPlusIntervalInMinutes := utc.Add(time.Minute * time.Duration(*req.IntervalInMinutes)).Format(time.RFC3339)
 
-  result, err := http.Get(fmt.Sprintf("https://api.carbonintensity.org.uk/intensity/%s/%s", now, nowPlus30Minutes))
-  
+  result, err := http.Get(fmt.Sprintf("https://api.carbonintensity.org.uk/intensity/%s/%s", now, nowPlusIntervalInMinutes))
+
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
     w.Write([]byte(err.Error()))
@@ -88,6 +108,8 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
       Index:   intensity.Index,
       Forecast: intensity.Forecast,
       Unit:    "gCO2/kWh",
+      From: now,
+      To: nowPlusIntervalInMinutes,
     }
 
     w.Header().Set("Content-Type", "application/json")
@@ -102,6 +124,8 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
       Index:   intensity.Index,
       Forecast: intensity.Forecast,
       Unit:    "gCO2/kWh",
+      From: now,
+      To: nowPlusIntervalInMinutes,
     }
 
     w.Header().Set("Content-Type", "application/json")
@@ -115,6 +139,8 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
     Index:   intensity.Index,
     Forecast: intensity.Forecast,
     Unit:    "gCO2/kWh",
+    From: now,
+    To: nowPlusIntervalInMinutes,
   }
 
   w.Header().Set("Content-Type", "application/json")
