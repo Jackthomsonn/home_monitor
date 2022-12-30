@@ -9,7 +9,8 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/", functions.PerformCheck)
+	http.HandleFunc("/publishData", functions.PublishData)
+	http.HandleFunc("/performCheck", functions.PerformCheck)
 
 	port := os.Getenv("PORT")
 	if port == "" {

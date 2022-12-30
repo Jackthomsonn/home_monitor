@@ -306,8 +306,8 @@ resource "google_compute_instance" "emqx_instance" {
   tags = ["http-server"]
 
   metadata_startup_script = <<-EOF
-  docker pull emqx/emqx-ee:4.4.12 &&
-  docker run -d --name emqx -p 1883:1883 -p 8083:8083 -p 8084:8084 -p 8883:8883 -p 18083:18083 emqx/emqx-ee:4.4.12
+  docker pull emqx/emqx:5.0.9 &&
+  docker run -d --name emqx -p 1883:1883 -p 8083:8083 -p 8084:8084 -p 8883:8883 -p 18083:18083 emqx/emqx:5.0.9
   EOF
 
 
