@@ -1,4 +1,4 @@
-![Untitled](https://user-images.githubusercontent.com/11717131/209890101-50218604-d6ff-4e96-8e35-ca7a4688346f.jpg)
+![diagram](https://user-images.githubusercontent.com/11717131/210117055-1aa44ca2-7d35-42f5-ad09-b3acdb25651f.svg)
 
 ## Technologies used
 
