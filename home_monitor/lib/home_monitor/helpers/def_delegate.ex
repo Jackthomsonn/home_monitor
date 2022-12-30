@@ -8,7 +8,7 @@ defmodule HomeMonitor.Helpers.DefDelegate do
   ## Example
   ```
     defmodule SomeModule do
-      use Ava.Helpers.DefDelegate
+      use Helpers.DefDelegate
       def_get_impl(:register_impl, impl: RegisterImpl)
       def register(data) do
         register_impl().register(data)
@@ -36,7 +36,7 @@ defmodule HomeMonitor.Helpers.DefDelegate do
       else
         @doc """
         Returns `#{unquote(name)}`
-        See `Ava.Helpers.DefDelegate` for more information
+        See `Helpers.DefDelegate` for more information
         """
         def unquote(func)() do
           unquote(name)
