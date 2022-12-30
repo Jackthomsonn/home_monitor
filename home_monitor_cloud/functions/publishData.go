@@ -3,17 +3,15 @@ package functions
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"io/ioutil"
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
 )
 
 type Data struct {
-	Temperature float32 `json:"temperature"`
-	ClientId  string `json:"client_id"`
-	Timestamp string `json:"timestamp"`
+	Temperature *float32 `json:"temperature"`
+	ClientId  *string `json:"client_id"`
+	Timestamp *string `json:"timestamp"`
 }
 
 type ResponseType struct {
@@ -21,53 +19,47 @@ type ResponseType struct {
 	Id string `json:"id"`
 }
 
-type ErrorResponseType struct {
-	Type string `json:"type"`
-	Message string `json:"message"`
-}
-
 func PublishData(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-
-	if err != nil { throwError(w, err); return }
-
 	var data Data
-	err = json.Unmarshal(body, &data)
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	if err != nil { throwError(w, err); return }
-
-	id, err := publishDataToGCP(body)
-
-	if err != nil { throwError(w, err); return }
+	id, err := publishDataToGCP(data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(ResponseType{Type: "Success", Id: id})
-
-	return
 }
 
-func publishDataToGCP(body []byte) (string, error) {
+func publishDataToGCP(data Data) (string, error) {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, "home-monitor-373013")
-
 	if err != nil {
-		return "", errors.New(err.Error())
+		return "", err
 	}
 
 	topic := client.Topic("state")
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
 
 	result := topic.Publish(ctx, &pubsub.Message{
-		Data: body,
+		Data: dataBytes,
 	})
 
 	id, err := result.Get(context.Background())
+	if err != nil {
+		return "", err
+	}
 
 	return id, nil
-}
-
-func throwError(w http.ResponseWriter, err error) {
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ErrorResponseType{Message: err.Error(), Type: "failed"})
 }
