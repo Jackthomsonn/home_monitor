@@ -23,6 +23,9 @@ func PublishData(w http.ResponseWriter, r *http.Request) {
 	var data Data
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&data)
+
+	defer r.Body.Close()
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
