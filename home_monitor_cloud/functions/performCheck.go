@@ -51,18 +51,18 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
   decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&req)
 
+  if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+  defer r.Body.Close()
+
   utc := time.Now().UTC().Truncate(time.Second)
   
   now := utc.Format(time.RFC3339)
 
   nowPlusIntervalInMinutes := utc.Add(time.Minute * time.Duration(*req.IntervalInMinutes)).Format(time.RFC3339)
-
-  if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-  
-  defer r.Body.Close()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -96,13 +96,21 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
 func getTemperature() (int, error) {
   result, err := http.Get("https://api.open-meteo.com/v1/forecast?latitude=51.45&longitude=-3.18&hourly=apparent_temperature&current_weather=true&precipitation_unit=inch&timezone=Europe%2FLondon")
 
+  if err != nil {
+    return 0, err
+  }
+  
+  defer result.Body.Close()
+
   body, err := ioutil.ReadAll(result.Body)
+
+  if err != nil {
+    return 0, err
+  }
 
   var data map[string]interface{}
 
   err = json.Unmarshal(body, &data)
-
-  defer result.Body.Close()
 
   if err != nil {
     return 0, err
@@ -121,13 +129,13 @@ func getCarbonIntensity(w http.ResponseWriter, intervalInMinutes int, now string
 		return CarbonintensityResponse{Data: nil}, err;
 	}
 
+  defer result.Body.Close()
+
   body, err := ioutil.ReadAll(result.Body)
 
   if err != nil {
 		return CarbonintensityResponse{Data: nil}, err;
 	}
-
-  defer result.Body.Close()
 
   var data CarbonintensityResponse
 

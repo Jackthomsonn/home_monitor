@@ -24,12 +24,12 @@ func PublishData(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&data)
 
-	defer r.Body.Close()
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	defer r.Body.Close()
 
 	id, err := publishDataToGCP(data)
 	if err != nil {
