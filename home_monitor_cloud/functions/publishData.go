@@ -49,6 +49,8 @@ func publishDataToGCP(data Data) (string, error) {
 		return "", err
 	}
 
+	defer client.Close()
+
 	topic := client.Topic("state")
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
