@@ -33,7 +33,7 @@ type ConsumptionResponse struct {
 }
 
 func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
-  err, response := getConsumptionData(w)
+  response, err := getConsumptionData(w)
 
   if err != nil {
     http.Error(w, err.Error(), http.StatusBadRequest)
@@ -55,27 +55,27 @@ func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
 func getStartAndEndDates(daysFromNow int) (string, string) {
   currentTime := time.Now()
 
-  start := currentTime.UTC().Format("20060102")
+  start := currentTime.AddDate(0, 0, -1).UTC().Format("20060102")
   
-  end := currentTime.AddDate(0, 0, daysFromNow).UTC().Format("20060102")
+  end := currentTime.UTC().Format("20060102")
 
   return start, end
 }
 
-func getConsumptionData(w http.ResponseWriter) (error, ConsumptionResponse) {
+func getConsumptionData(w http.ResponseWriter) (ConsumptionResponse, error) {
   start, end := getStartAndEndDates(1)
 
   client := &http.Client{}
   req, err := http.NewRequest("GET", "https://consumer-api.data.n3rgy.com/electricity/consumption/1?start=" + start + "&end=" + end + "&output=json", nil)
 
   if err != nil {
-    return err, ConsumptionResponse{}
+    return ConsumptionResponse{}, err
   }
 
   secret, err := utils.GetSecret("projects/345305797254/secrets/consumption_secret/versions/latest", context.Background())
 
   if err != nil {
-    return err, ConsumptionResponse{}
+    return ConsumptionResponse{}, err
   }
 
   req.Header.Set("Authorization", secret)
@@ -83,7 +83,7 @@ func getConsumptionData(w http.ResponseWriter) (error, ConsumptionResponse) {
   res, err := client.Do(req)
 
   if err != nil {
-    return err, ConsumptionResponse{}
+    return ConsumptionResponse{}, err
   }
 
   defer res.Body.Close()
@@ -93,16 +93,16 @@ func getConsumptionData(w http.ResponseWriter) (error, ConsumptionResponse) {
   body, err := ioutil.ReadAll(res.Body)
 
   if err != nil {
-    return err, ConsumptionResponse{}
+    return ConsumptionResponse{}, err
   }
 
   err = json.Unmarshal(body, &response)
 
   if err != nil {
-    return err, ConsumptionResponse{}
+    return ConsumptionResponse{}, err
   }
 
-  return nil, response
+  return response, nil
 }
 
 func insertDataIntoBiqQuery(ctx context.Context, consumptionData []ConsumptionValues) error {

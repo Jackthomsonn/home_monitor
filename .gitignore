@@ -7,3 +7,4 @@ home_monitor_cloud/functions/node_modules/
 home_monitor/config/runtime.exs
 home_monitor_cloud/functions/dist
 home_monitor/config/target.exs
+Deploy.md
