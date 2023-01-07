@@ -8,7 +8,7 @@ import Config
 # Enable the Nerves integration with Mix
 Application.start(:nerves_bootstrap)
 
-config :home_monitor, :interval, 5000
+config :home_monitor, :interval, 60000
 
 config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
 
