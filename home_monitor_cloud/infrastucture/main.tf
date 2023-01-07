@@ -39,7 +39,9 @@ module "project_services" {
     "compute.googleapis.com",
     "cloudfunctions.googleapis.com",
     "cloudbuild.googleapis.com",
-    "artifactregistry.googleapis.com"
+    "artifactregistry.googleapis.com",
+    "secretmanager.googleapis.com",
+    "cloudscheduler.googleapis.com"
   ]
 
   disable_services_on_destroy = true
@@ -89,6 +91,32 @@ resource "google_bigquery_table" "home_monitor" {
         "name": "timestamp",
         "type": "STRING",
         "description": "The timestamp at which the temperature was recorded on the device"
+      }
+    ]
+    EOF
+
+  depends_on = [
+    google_bigquery_dataset.home_monitor
+  ]
+}
+
+resource "google_bigquery_table" "home_monitor_consumption" {
+  deletion_protection = false
+  project             = var.project
+  table_id            = "home_monitor_consumption_table"
+  dataset_id          = google_bigquery_dataset.home_monitor.dataset_id
+
+  schema = <<EOF
+    [
+      {
+        "name": "timestamp",
+        "type": "TIMESTAMP",
+        "description": "The timestamp at which the consumption data was recorded"
+      },
+      {
+        "name": "value",
+        "type": "FLOAT",
+        "description": "The value of the consumption in kWh"
       }
     ]
     EOF
@@ -345,3 +373,78 @@ resource "google_compute_instance" "emqx_instance" {
   }
 }
 
+##### Secrets
+resource "google_secret_manager_secret" "consumption_secret" {
+  secret_id = "consumption_secret"
+  project   = var.project
+
+  replication {
+    automatic = true
+  }
+
+  depends_on = [
+    module.project_services
+  ]
+}
+
+resource "google_secret_manager_secret_version" "consumption_secret_version" {
+  secret      = google_secret_manager_secret.consumption_secret.id
+  secret_data = data.sops_file.secrets.data["consumption_secret"]
+
+  depends_on = [
+    google_secret_manager_secret.consumption_secret
+  ]
+}
+
+##### Cloud scheduler jobs
+resource "google_cloud_scheduler_job" "job" {
+  name             = "consumption-ingestion-job"
+  project          = var.project
+  region           = var.region
+  description      = "Gets the latest consumption data from the meter and ingests that data into the database"
+  schedule         = "10 */24 * * *"
+  time_zone        = "Europe/London"
+  attempt_deadline = "60s"
+
+  retry_config {
+    retry_count = 5
+  }
+
+  http_target {
+    http_method = "GET"
+    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/IngestConsumptionData"
+  }
+
+  depends_on = [
+    module.project_services
+  ]
+}
+
+##### Ingest data cloud function IAM
+data "google_iam_policy" "ingest_data_iam_policy" {
+  binding {
+    role    = "roles/iam.serviceAccountUser"
+    members = []
+  }
+}
+
+resource "google_service_account" "ingest_data_iam_service_account" {
+  account_id   = "ingest-data-iam-sa"
+  project      = var.project
+  display_name = "Ingest Data IAM Service Account used for the Ingest data cloud function"
+}
+
+resource "google_project_iam_member" "ingest_data_iam_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/bigquery.dataEditor",
+    "roles/secretmanager.secretAccessor"
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.ingest_data_iam_service_account.email}"
+}
+
+resource "google_service_account_iam_policy" "ingest_data_iam" {
+  service_account_id = google_service_account.ingest_data_iam_service_account.name
+  policy_data        = data.google_iam_policy.ingest_data_iam_policy.policy_data
+}
