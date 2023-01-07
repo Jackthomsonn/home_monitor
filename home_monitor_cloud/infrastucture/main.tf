@@ -402,7 +402,7 @@ resource "google_cloud_scheduler_job" "job" {
   project          = var.project
   region           = var.region
   description      = "Gets the latest consumption data from the meter and ingests that data into the database"
-  schedule         = "10 */24 * * *"
+  schedule         = "10 00 * * *"
   time_zone        = "Europe/London"
   attempt_deadline = "60s"
 
