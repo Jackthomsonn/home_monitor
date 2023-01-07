@@ -89,7 +89,7 @@ resource "google_bigquery_table" "home_monitor" {
       },
       {
         "name": "timestamp",
-        "type": "STRING",
+        "type": "TIMESTAMP",
         "description": "The timestamp at which the temperature was recorded on the device"
       }
     ]
