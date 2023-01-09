@@ -40,6 +40,9 @@ func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+
+  response.Values = response.Values[:len(response.Values)-1]
+
   bigqueryErr := insertDataIntoBiqQuery(context.Background(), response.Values)
 
   if bigqueryErr != nil {
