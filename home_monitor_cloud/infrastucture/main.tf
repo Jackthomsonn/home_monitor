@@ -353,11 +353,12 @@ resource "google_compute_address" "emqx_static_ip" {
 }
 
 resource "google_compute_instance" "emqx_instance" {
-  name         = "emqx-instance"
-  project      = var.project
-  zone         = var.zone
-  description  = "The EMQX instance"
-  machine_type = "e2-medium"
+  name                      = "emqx-instance"
+  project                   = var.project
+  zone                      = var.zone
+  description               = "The EMQX instance"
+  machine_type              = "e2-small"
+  allow_stopping_for_update = true
 
   lifecycle {
     ignore_changes = [
@@ -433,7 +434,7 @@ resource "google_cloud_scheduler_job" "job" {
   project          = var.project
   region           = var.region
   description      = "Gets the latest consumption data from the meter and ingests that data into the database"
-  schedule         = "10 00 * * *"
+  schedule         = "00 01 * * *"
   time_zone        = "Europe/London"
   attempt_deadline = "60s"
 
@@ -456,7 +457,7 @@ resource "google_cloud_scheduler_job" "ingest_carbon_intensity_job" {
   project          = var.project
   region           = var.region
   description      = "Gets the latest carbon intensity data from the grid and ingests that data into the database"
-  schedule         = "00 00 * * *"
+  schedule         = "00 01 * * *"
   time_zone        = "Europe/London"
   attempt_deadline = "60s"
 
