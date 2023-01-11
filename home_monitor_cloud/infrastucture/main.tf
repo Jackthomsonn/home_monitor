@@ -126,6 +126,37 @@ resource "google_bigquery_table" "home_monitor_consumption" {
   ]
 }
 
+resource "google_bigquery_table" "home_monitor_carbon_intensity" {
+  deletion_protection = false
+  project             = var.project
+  table_id            = "home_monitor_carbon_intensity"
+  dataset_id          = google_bigquery_dataset.home_monitor.dataset_id
+
+  schema = <<EOF
+    [
+      {
+        "name": "timestamp",
+        "type": "TIMESTAMP",
+        "description": "The timestamp at which the consumption data was recorded"
+      },
+      {
+        "name": "actual",
+        "type": "FLOAT",
+        "description": "The actual carbon intensity in gCO2/kWh"
+      },
+      {
+        "name": "forecast",
+        "type": "FLOAT",
+        "description": "The forecasted carbon intensity in gCO2/kWh"
+      }
+    ]
+    EOF
+
+  depends_on = [
+    google_bigquery_dataset.home_monitor
+  ]
+}
+
 ##### Pub sub
 resource "google_pubsub_schema" "house_monitor_schema" {
   name       = "house-monitor-schema"
@@ -413,6 +444,29 @@ resource "google_cloud_scheduler_job" "job" {
   http_target {
     http_method = "GET"
     uri         = "https://${var.region}-${var.project}.cloudfunctions.net/IngestConsumptionData"
+  }
+
+  depends_on = [
+    module.project_services
+  ]
+}
+
+resource "google_cloud_scheduler_job" "ingest_carbon_intensity_job" {
+  name             = "carbon-intensity-ingestion-job"
+  project          = var.project
+  region           = var.region
+  description      = "Gets the latest carbon intensity data from the grid and ingests that data into the database"
+  schedule         = "00 00 * * *"
+  time_zone        = "Europe/London"
+  attempt_deadline = "60s"
+
+  retry_config {
+    retry_count = 5
+  }
+
+  http_target {
+    http_method = "GET"
+    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/IngestCarbonIntensityData"
   }
 
   depends_on = [

@@ -3,47 +3,21 @@ package functions
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
+
+	"jackthomson.com/functions/enums"
+	"jackthomson.com/functions/models"
+	"jackthomson.com/functions/services"
+	"jackthomson.com/functions/utils"
 )
 
 type PerformCheckRequest struct {
   IntervalInMinutes *int `json:"interval_in_minutes"`
 }
 
-type Carbonintensity struct {
-  Index     string `json:"index"`
-  Forecast  int    `json:"forecast"`
-  Actual    int    `json:"actual"`
-}
-
-type CarbonintensityData struct {
-  From      string         `json:"from"`
-  To        string         `json:"to"`
-  Intensity Carbonintensity `json:"intensity"`
-}
-
-type CarbonintensityResponse struct {
-  Data []CarbonintensityData `json:"data"`
-}
-
-type Action string
-
-const (
-  TURN_ON       Action = "TURN_ON"
-  TURN_OFF      Action = "TURN_OFF"
-  MAYBE_TURN_ON Action = "MAYBE_TURN_ON"
-)
-
 type Response struct {
-  Action  Action `json:"action"`
-  Index   string `json:"index"`
-  Forecast int    `json:"forecast"`
-  Unit    string `json:"unit"`
-  From    string `json:"from"`
-  To      string `json:"to"`
+  Intensities       []models.Carbonintensity `json:"intensities"`
 }
 
 func PerformCheck(w http.ResponseWriter, r *http.Request) {
@@ -74,14 +48,16 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  data, err := getCarbonIntensity(w, *req.IntervalInMinutes, now, nowPlusIntervalInMinutes)
+  data, err := services.GetCarbonIntensity(w, now, nowPlusIntervalInMinutes)
 
   if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-  carbonintensityResponse, err := determineCarbonIntensity(data, now, nowPlusIntervalInMinutes)
+  carbonintensityResponse, err := determineCarbonIntensity(data)
+
+  response := Response{Intensities: carbonintensityResponse}
 
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -90,98 +66,31 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
 
   w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(http.StatusOK)
-  json.NewEncoder(w).Encode(carbonintensityResponse)
+  json.NewEncoder(w).Encode(response)
 }
 
-func getTemperature() (int, error) {
-  result, err := http.Get("https://api.open-meteo.com/v1/forecast?latitude=51.45&longitude=-3.18&hourly=apparent_temperature&current_weather=true&precipitation_unit=inch&timezone=Europe%2FLondon")
-
-  if err != nil {
-    return 0, err
-  }
-  
-  defer result.Body.Close()
-
-  body, err := ioutil.ReadAll(result.Body)
-
-  if err != nil {
-    return 0, err
-  }
-
-  var data map[string]interface{}
-
-  err = json.Unmarshal(body, &data)
-
-  if err != nil {
-    return 0, err
-  }
-
-  currentWeather := data["current_weather"].(map[string]interface{})
-  apparentTemperature := currentWeather["apparent_temperature"].(float64)
-
-  return int(apparentTemperature), nil
-}
-
-func getCarbonIntensity(w http.ResponseWriter, intervalInMinutes int, now string, nowPlusIntervalInMinutes string) (CarbonintensityResponse, error) {  
-  result, err := http.Get(fmt.Sprintf("https://api.carbonintensity.org.uk/intensity/%s/%s", now, nowPlusIntervalInMinutes))
-
-  if err != nil {
-		return CarbonintensityResponse{Data: nil}, err;
-	}
-
-  defer result.Body.Close()
-
-  body, err := ioutil.ReadAll(result.Body)
-
-  if err != nil {
-		return CarbonintensityResponse{Data: nil}, err;
-	}
-
-  var data CarbonintensityResponse
-
-  err = json.Unmarshal(body, &data)
-
-  if err != nil {
-    return CarbonintensityResponse{Data: nil}, err;
-  }
-
-  return data, nil
-}
-
-func determineCarbonIntensity(data CarbonintensityResponse, now string, nowPlusIntervalInMinutes string) (Response, error) {
-  latestData := data.Data[0]
-
-  intensity := latestData.Intensity
+func determineCarbonIntensity(data services.CarbonintensityResponse) ([]models.Carbonintensity, error) {
+  latestData := data.Data
 
   efficientIntensities := []string{"very low", "low"}
 
   midEfficientIntensities := []string{"moderate"}
 
-  response := Response{Index: intensity.Index, Forecast: intensity.Forecast, Unit: "gCO2/kWh", From: now, To: nowPlusIntervalInMinutes}
+  response := []models.Carbonintensity{}
 
-  if contains(efficientIntensities, intensity.Index) {
-    response.Action = TURN_ON
+  for i := range latestData {
+    if utils.Contains(efficientIntensities, latestData[i].Intensity.Index) {
+      response = append(response, models.Carbonintensity{Index: latestData[i].Intensity.Index, Actual: latestData[i].Intensity.Actual, Forecast: latestData[i].Intensity.Forecast, Unit: "gCO2/kWh", From: latestData[i].From, To: latestData[i].To, Action: enums.TURN_ON})
+      continue
+    }
 
-    return response, nil
+    if utils.Contains(midEfficientIntensities, latestData[i].Intensity.Index) {
+      response = append(response, models.Carbonintensity{Index: latestData[i].Intensity.Index, Actual: latestData[i].Intensity.Actual, Forecast: latestData[i].Intensity.Forecast, Unit: "gCO2/kWh", From: latestData[i].From, To: latestData[i].To, Action: enums.MAYBE_TURN_ON})
+      continue
+    }
+
+    response = append(response, models.Carbonintensity{Index: latestData[i].Intensity.Index, Actual: latestData[i].Intensity.Actual, Forecast: latestData[i].Intensity.Forecast, Unit: "gCO2/kWh", From: latestData[i].From, To: latestData[i].To, Action: enums.TURN_OFF})
   }
-
-  if contains(midEfficientIntensities, intensity.Index) {
-    response.Action = MAYBE_TURN_ON
-
-    return response, nil
-  }
-
-  response.Action = TURN_OFF
   
   return response, nil
-}
-
-func contains(slice []string, item string) bool {
-  for _, s := range slice {
-    if s == item {
-      return true
-    }
-  }
-
-  return false
 }

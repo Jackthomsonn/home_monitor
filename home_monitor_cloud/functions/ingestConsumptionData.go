@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"cloud.google.com/go/bigquery"
 	"jackthomson.com/functions/utils"
 )
 
@@ -40,10 +39,9 @@ func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-
   response.Values = response.Values[:len(response.Values)-1]
 
-  bigqueryErr := insertDataIntoBiqQuery(context.Background(), response.Values)
+  bigqueryErr := utils.InsertDataIntoBiqQuery(context.Background(), response.Values, "home_monitor_consumption_table")
 
   if bigqueryErr != nil {
     http.Error(w, bigqueryErr.Error(), http.StatusBadRequest)
@@ -89,6 +87,7 @@ func getConsumptionData(w http.ResponseWriter) (ConsumptionResponse, error) {
     return ConsumptionResponse{}, err
   }
 
+  defer client.CloseIdleConnections()
   defer res.Body.Close()
 
   response := ConsumptionResponse{}
@@ -106,18 +105,4 @@ func getConsumptionData(w http.ResponseWriter) (ConsumptionResponse, error) {
   }
 
   return response, nil
-}
-
-func insertDataIntoBiqQuery(ctx context.Context, consumptionData []ConsumptionValues) error {
-  client, err := bigquery.NewClient(ctx, "home-monitor-373013")
-  
-  if err != nil { return err }
-
-  table := client.Dataset("home_monitor_dataset").Table("home_monitor_consumption_table")
-
-  insertErr := table.Inserter().Put(ctx, consumptionData)
-
-  if insertErr != nil { return insertErr }
-
-  return nil
 }
