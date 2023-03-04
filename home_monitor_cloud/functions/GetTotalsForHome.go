@@ -16,7 +16,7 @@ func GetTotalsForHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", originToUse)
-	var response, err = services.GetTotalsForHome()
+	var response, err = services.HomeTotals()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

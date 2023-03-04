@@ -18,7 +18,7 @@ type RowResponse struct {
 }
 
 // This will turn into an ETL that will store the data in Postgres
-func GetTotalsForHome() (UserTotalsResponse, error) {
+func HomeTotals() (UserTotalsResponse, error) {
 	client, err := bigquery.NewClient(context.Background(), "home-monitor-373013")
 
 	if err != nil {
@@ -50,7 +50,7 @@ func GetTotalsForHome() (UserTotalsResponse, error) {
 			return UserTotalsResponse{}, err
 		}
 
-		carbonTotal += row.CarbonIntensity
+		carbonTotal += row.CarbonIntensity * row.Consumption
 		consumptionTotal += row.Consumption
 	}
 
