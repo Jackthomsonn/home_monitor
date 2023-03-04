@@ -10,23 +10,20 @@ import (
 
 type Data struct {
 	Temperature *float32 `json:"temperature"`
-	ClientId  *string `json:"client_id"`
-	Timestamp *string `json:"timestamp"`
+	ClientId    *string  `json:"client_id"`
+	Timestamp   *string  `json:"timestamp"`
 }
 
 type ResponseType struct {
 	Type string `json:"type"`
-	Id string `json:"id"`
+	Id   string `json:"id"`
 }
 
 func PublishData(w http.ResponseWriter, r *http.Request) {
 	var data Data
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&data)
-
-	if err != nil {
+	if err := decoder.Decode(&data); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
 	}
 
 	defer r.Body.Close()

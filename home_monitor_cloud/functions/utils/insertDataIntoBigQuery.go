@@ -15,9 +15,9 @@ func InsertDataIntoBiqQuery(ctx context.Context, data any, tableId string) error
 
   table := client.Dataset("home_monitor_dataset").Table(tableId)
 
-  insertErr := table.Inserter().Put(ctx, data)
-
-  if insertErr != nil { return insertErr }
+  if insertErr := table.Inserter().Put(ctx, data); insertErr != nil {
+    return insertErr
+  }
 
   return nil
 }

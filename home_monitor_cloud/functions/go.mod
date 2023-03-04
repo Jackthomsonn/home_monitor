@@ -6,6 +6,7 @@ require cloud.google.com/go/pubsub v1.28.0
 
 require (
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 )
 

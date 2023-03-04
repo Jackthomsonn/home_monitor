@@ -476,13 +476,14 @@ resource "google_cloud_scheduler_job" "ingest_carbon_intensity_job" {
 }
 
 ##### Ingest data cloud function IAM
-data "google_iam_policy" "ingest_data_iam_policy" {
+data "google_iam_policy" "sa_user_iam_policy" {
   binding {
     role    = "roles/iam.serviceAccountUser"
     members = []
   }
 }
 
+##### Ingest data service account
 resource "google_service_account" "ingest_data_iam_service_account" {
   account_id   = "ingest-data-iam-sa"
   project      = var.project
@@ -501,5 +502,28 @@ resource "google_project_iam_member" "ingest_data_iam_service_account_member_rol
 
 resource "google_service_account_iam_policy" "ingest_data_iam" {
   service_account_id = google_service_account.ingest_data_iam_service_account.name
-  policy_data        = data.google_iam_policy.ingest_data_iam_policy.policy_data
+  policy_data        = data.google_iam_policy.sa_user_iam_policy.policy_data
+}
+
+#### Get totals for home service account
+resource "google_service_account" "get_totals_for_home_service_account" {
+  account_id   = "get-totals-for-home-iam-sa"
+  project      = var.project
+  display_name = "Get Totals For Home Service Account used for the Get Totals For Home function"
+}
+
+resource "google_project_iam_member" "get_totals_for_home_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/bigquery.dataViewer",
+    "roles/secretmanager.secretAccessor",
+    "roles/bigquery.jobUser"
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.get_totals_for_home_service_account.email}"
+}
+
+resource "google_service_account_iam_policy" "get_totals_for_home" {
+  service_account_id = google_service_account.get_totals_for_home_service_account.name
+  policy_data        = data.google_iam_policy.sa_user_iam_policy.policy_data
 }

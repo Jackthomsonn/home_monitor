@@ -13,6 +13,7 @@ func main() {
 	http.HandleFunc("/performCheck", functions.PerformCheck)
 	http.HandleFunc("/ingestConsumptionData", functions.IngestConsumptionData)
 	http.HandleFunc("/ingestCarbonIntensityData", functions.IngestCarbonIntensityData)
+	http.HandleFunc("/getTotalsForHome", functions.GetTotalsForHome)
 
 	port := os.Getenv("PORT")
 	if port == "" {
