@@ -8,18 +8,7 @@ import (
 	"jackthomson.com/functions/utils"
 )
 
-type Data struct {
-	Temperature *float32 `json:"temperature"`
-	ClientId    *string  `json:"client_id"`
-	Timestamp   *string  `json:"timestamp"`
-}
-
-type ResponseType struct {
-	Type string `json:"type"`
-	Id   string `json:"id"`
-}
-
-func PublishData(w http.ResponseWriter, r *http.Request) {
+func TriggerConsumptionData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var data Data
@@ -33,7 +22,7 @@ func PublishData(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	id, err := utils.PublishDataToGCP(data, "state")
+	id, err := utils.PublishDataToGCP(nil, "consumption-ingestion")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})

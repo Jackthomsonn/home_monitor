@@ -165,7 +165,7 @@ resource "google_pubsub_schema" "house_monitor_schema" {
   definition = "{\r\n  \"type\" : \"record\",\r\n  \"name\" : \"HouseMonitor\",\r\n  \"fields\" : [\r\n    {\r\n      \"name\" : \"temperature\",\r\n      \"type\" : \"float\"\r\n    },\r\n    {\r\n      \"name\" : \"client_id\",\r\n      \"type\" : \"string\"\r\n    },\r\n    {\r\n      \"name\" : \"timestamp\",\r\n      \"type\" : \"string\"\r\n    }\r\n  ]\r\n}"
 }
 
-resource "google_pubsub_topic" "topic" {
+resource "google_pubsub_topic" "state_topic" {
   name    = "state"
   project = var.project
   schema_settings {
@@ -178,7 +178,7 @@ resource "google_pubsub_topic" "topic" {
   ]
 }
 
-resource "google_pubsub_topic" "topic_dead_letter" {
+resource "google_pubsub_topic" "state_topic_dead_letter" {
   name    = "state-deadletter"
   project = var.project
 }
@@ -186,7 +186,7 @@ resource "google_pubsub_topic" "topic_dead_letter" {
 resource "google_pubsub_subscription" "topic_sub" {
   name    = "state-sub"
   project = var.project
-  topic   = google_pubsub_topic.topic.name
+  topic   = google_pubsub_topic.state_topic.name
 
   bigquery_config {
     table            = "${google_bigquery_table.home_monitor.project}:${google_bigquery_table.home_monitor.dataset_id}.${google_bigquery_table.home_monitor.table_id}"
@@ -196,25 +196,73 @@ resource "google_pubsub_subscription" "topic_sub" {
   ack_deadline_seconds = 20
 
   dead_letter_policy {
-    dead_letter_topic     = google_pubsub_topic.topic_dead_letter.id
+    dead_letter_topic     = google_pubsub_topic.state_topic_dead_letter.id
     max_delivery_attempts = 5
   }
 
   depends_on = [
-    google_pubsub_topic.topic,
+    google_pubsub_topic.state_topic,
     google_bigquery_table.home_monitor
   ]
 }
 
-resource "google_pubsub_subscription" "topic_dead_letter_sub" {
+resource "google_pubsub_subscription" "state_topic_dead_letter_sub" {
   name    = "state-sub-deadletter"
   project = var.project
-  topic   = google_pubsub_topic.topic_dead_letter.name
+  topic   = google_pubsub_topic.state_topic_dead_letter.name
 
   ack_deadline_seconds = 600
 
   depends_on = [
-    google_pubsub_topic.topic_dead_letter
+    google_pubsub_topic.state_topic_dead_letter
+  ]
+}
+
+resource "google_pubsub_topic" "consumption_ingestion_topic" {
+  name    = "consumption-ingestion"
+  project = var.project
+}
+
+resource "google_pubsub_subscription" "consumption_ingestion_topic_sub" {
+  name    = "consumption-ingestion-sub"
+  project = var.project
+  topic   = google_pubsub_topic.consumption_ingestion_topic.name
+
+  ack_deadline_seconds = 20
+
+  retry_policy {
+    minimum_backoff = "600s"
+    maximum_backoff = "600s"
+  }
+
+  push_config {
+    push_endpoint = "https://${var.region}-${var.project}.cloudfunctions.net/IngestConsumptionData"
+  }
+
+  dead_letter_policy {
+    dead_letter_topic     = google_pubsub_topic.consumption_ingestion_topic_dead_letter.id
+    max_delivery_attempts = 30
+  }
+
+  depends_on = [
+    google_pubsub_topic.consumption_ingestion_topic
+  ]
+}
+
+resource "google_pubsub_topic" "consumption_ingestion_topic_dead_letter" {
+  name    = "consumption-ingestion-deadletter"
+  project = var.project
+}
+
+resource "google_pubsub_subscription" "consumption_ingestion_topic_dead_letter_sub" {
+  name    = "consumption-ingestion-sub-deadletter"
+  project = var.project
+  topic   = google_pubsub_topic.consumption_ingestion_topic_dead_letter.name
+
+  ack_deadline_seconds = 600
+
+  depends_on = [
+    google_pubsub_topic.consumption_ingestion_topic_dead_letter
   ]
 }
 
@@ -475,8 +523,9 @@ resource "google_cloud_scheduler_job" "job" {
   }
 
   http_target {
-    http_method = "GET"
-    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/IngestConsumptionData"
+    http_method = "POST"
+    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/TriggerConsumptionData"
+    body        = base64encode(jsonencode({}))
   }
 
   depends_on = [
