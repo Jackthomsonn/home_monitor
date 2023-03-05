@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"cloud.google.com/go/bigquery"
 	"google.golang.org/api/iterator"
@@ -17,12 +18,11 @@ type RowResponse struct {
 	Consumption     float64 `json:"consumption,omitempty"`
 }
 
-// This will turn into an ETL that will store the data in Postgres
 func HomeTotals() (UserTotalsResponse, error) {
 	client, err := bigquery.NewClient(context.Background(), "home-monitor-373013")
 
 	if err != nil {
-		return UserTotalsResponse{CarbonTotal: 0, ConsumptionTotal: 0}, err
+		return UserTotalsResponse{}, err
 	}
 
 	defer client.Close()
@@ -32,7 +32,11 @@ func HomeTotals() (UserTotalsResponse, error) {
 	it, err := query.Read(context.Background())
 
 	if err != nil {
-		return UserTotalsResponse{CarbonTotal: 0, ConsumptionTotal: 0}, err
+		return UserTotalsResponse{}, err
+	}
+
+	if it.TotalRows == 0 {
+		return UserTotalsResponse{}, errors.New("downstream error: smart dcc network is down or has no data")
 	}
 
 	var carbonTotal float64
@@ -45,7 +49,7 @@ func HomeTotals() (UserTotalsResponse, error) {
 		}
 
 		if err != nil {
-			return UserTotalsResponse{CarbonTotal: 0, ConsumptionTotal: 0}, err
+			return UserTotalsResponse{}, err
 		}
 
 		carbonTotal += row.CarbonIntensity * row.Consumption

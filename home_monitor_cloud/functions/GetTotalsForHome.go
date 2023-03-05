@@ -18,11 +18,6 @@ func GetTotalsForHome(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", originToUse)
 	response, err := services.HomeTotals()
 
-	if response.CarbonTotal == 0 && response.ConsumptionTotal == 0 {
-		http.Error(w, "Data is currently delayed", http.StatusFailedDependency)
-		return
-	}
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

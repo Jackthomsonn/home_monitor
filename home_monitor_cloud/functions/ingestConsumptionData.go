@@ -3,6 +3,7 @@ package functions
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -36,11 +37,6 @@ func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if len(response.Values) == 0 {
-		http.Error(w, "No data returned from API", http.StatusBadRequest)
 		return
 	}
 
@@ -108,6 +104,10 @@ func getConsumptionData(w http.ResponseWriter) (ConsumptionResponse, error) {
 
 	if err != nil {
 		return ConsumptionResponse{}, err
+	}
+
+	if len(response.Values) == 0 {
+		return ConsumptionResponse{}, errors.New("downstream error: no consumption data found")
 	}
 
 	return response, nil
