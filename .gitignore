@@ -1,4 +1,4 @@
-home_monitor_cloud/infrastucture/.terraform
+home_monitor_cloud/infrastructure/.terraform
 home_monitor/_build
 home_monitor/deps
 home_monitor/.elixir_ls

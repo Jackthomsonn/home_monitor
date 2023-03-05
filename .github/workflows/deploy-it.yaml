@@ -1,0 +1,71 @@
+name: Deploy Home Monitor Workflow
+run-name: ${{ github.actor }} deploying Home Monitor 🚀
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Deploy-Infrastructure:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - id: "auth"
+        uses: "google-github-actions/auth@v1"
+        with:
+          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v1"
+        with:
+          version: ">= 363.0.0"
+      - name: Determine if any infrastructure has changed
+        id: infrastructure-has-changed
+        uses: tj-actions/changed-files@v35
+        with:
+          files: home_monitor_cloud/infrastructure/*
+      - name: Infrastructure-Apply
+        if: steps.infrastructure-has-changed.outputs.any_changed == 'true'
+        run: >
+          cd home_monitor_cloud/infrastructure &&
+          terraform init &&
+          terraform apply -auto-approve
+
+  Deploy-functions:
+    runs-on: ubuntu-latest
+    needs: Deploy-Infrastructure
+    permissions:
+      contents: "read"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - id: "auth"
+        uses: "google-github-actions/auth@v1"
+        with:
+          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v1"
+        with:
+          version: ">= 363.0.0"
+      - name: Determine if any functions have changed
+        id: functions-have-changed
+        uses: tj-actions/changed-files@v35
+        with:
+          files: home_monitor_cloud/functions/**/*
+      - name: Deploy IngestConsumptionData function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy IngestConsumptionData --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account ingest-data-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
+      - name: Deploy PublishData function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy PublishData --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --project home-monitor-373013
+      - name: Deploy PerformCheck function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy PerformCheck --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --project home-monitor-373013
+      - name: Deploy IngestCarbonIntensityData function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy IngestCarbonIntensityData --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account ingest-data-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
+      - name: Deploy GetTotalsForHome function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy GetTotalsForHome --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account get-totals-for-home-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
