@@ -22,7 +22,7 @@ func HomeTotals() (UserTotalsResponse, error) {
 	client, err := bigquery.NewClient(context.Background(), "home-monitor-373013")
 
 	if err != nil {
-		return UserTotalsResponse{}, err
+		return UserTotalsResponse{CarbonTotal: 0, ConsumptionTotal: 0}, err
 	}
 
 	defer client.Close()
@@ -32,7 +32,7 @@ func HomeTotals() (UserTotalsResponse, error) {
 	it, err := query.Read(context.Background())
 
 	if err != nil {
-		return UserTotalsResponse{}, err
+		return UserTotalsResponse{CarbonTotal: 0, ConsumptionTotal: 0}, err
 	}
 
 	var carbonTotal float64
@@ -40,14 +40,12 @@ func HomeTotals() (UserTotalsResponse, error) {
 
 	for {
 		var row RowResponse
-		err := it.Next(&row)
-
-		if err == iterator.Done {
+		if err := it.Next(&row); err == iterator.Done {
 			break
 		}
 
 		if err != nil {
-			return UserTotalsResponse{}, err
+			return UserTotalsResponse{CarbonTotal: 0, ConsumptionTotal: 0}, err
 		}
 
 		carbonTotal += row.CarbonIntensity * row.Consumption
