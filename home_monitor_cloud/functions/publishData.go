@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
+	"jackthomson.com/functions/models"
 )
 
 type Data struct {
@@ -20,22 +21,27 @@ type ResponseType struct {
 }
 
 func PublishData(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var data Data
 	decoder := json.NewDecoder(r.Body)
+
 	if err := decoder.Decode(&data); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
+		return
 	}
 
 	defer r.Body.Close()
 
 	id, err := publishDataToGCP(data)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(ResponseType{Type: "Success", Id: id})
 }
 

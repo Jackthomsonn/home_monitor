@@ -21,10 +21,14 @@ type Response struct {
 }
 
 func PerformCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var req PerformCheckRequest
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
+		return
 	}
 
 	defer r.Body.Close()
@@ -36,27 +40,29 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
 	nowPlusIntervalInMinutes := utc.Add(time.Minute * time.Duration(*req.IntervalInMinutes)).Format(time.RFC3339)
 
 	if req.IntervalInMinutes == nil {
-		http.Error(w, errors.New("interval_in_minutes is required").Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(models.Error{Message: errors.New("interval_in_minutes is required").Error()})
 		return
 	}
 
 	data, err := services.GetCarbonIntensity(w, now, nowPlusIntervalInMinutes)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
 
 	carbonintensityResponse, err := determineCarbonIntensity(data)
 
-	response := Response{Intensities: carbonintensityResponse}
-
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	response := Response{Intensities: carbonintensityResponse}
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"jackthomson.com/functions/models"
 	"jackthomson.com/functions/services"
 	"jackthomson.com/functions/utils"
 )
@@ -17,6 +18,8 @@ type CarbonIntensityIngestion struct {
 }
 
 func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	utc := time.Now().UTC().Truncate(time.Second)
 
 	now := utc.Format(time.RFC3339)
@@ -25,7 +28,8 @@ func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
 	data, err := services.GetCarbonIntensity(w, previousDay, now)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
 
@@ -40,11 +44,11 @@ func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = utils.InsertDataIntoBiqQuery(context.Background(), ingestionValues, "home_monitor_carbon_intensity"); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(ingestionValues)
 }

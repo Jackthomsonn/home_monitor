@@ -5,10 +5,13 @@ import (
 	"net/http"
 	"os"
 
+	"jackthomson.com/functions/models"
 	"jackthomson.com/functions/services"
 )
 
 func GetTotalsForHome(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var originToUse string = "https://jackthomson.co.uk"
 
 	if os.Getenv("DEVELOPMENT_MODE") == "true" {
@@ -19,11 +22,11 @@ func GetTotalsForHome(w http.ResponseWriter, r *http.Request) {
 	response, err := services.HomeTotals()
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"jackthomson.com/functions/models"
 	"jackthomson.com/functions/utils"
 )
 
@@ -33,10 +34,13 @@ type ConsumptionResponse struct {
 }
 
 func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	response, err := getConsumptionData(w)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
 
@@ -45,11 +49,11 @@ func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
 	bigqueryErr := utils.InsertDataIntoBiqQuery(context.Background(), response.Values, "home_monitor_consumption_table")
 
 	if bigqueryErr != nil {
-		http.Error(w, bigqueryErr.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
