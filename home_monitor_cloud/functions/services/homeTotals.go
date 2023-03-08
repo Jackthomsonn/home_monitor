@@ -59,6 +59,9 @@ func HomeTotals() (UserTotalsResponse, error) {
 		carbonTotal += row.CarbonIntensity * row.Consumption
 		consumptionTotal += row.Consumption
 	}
+	
+	carbonTotal = float64(int(carbonTotal*100)) / 100
+	consumptionTotal = float64(int(consumptionTotal*100)) / 100
 
 	return UserTotalsResponse{CarbonTotal: carbonTotal, ConsumptionTotal: consumptionTotal}, nil
 }
