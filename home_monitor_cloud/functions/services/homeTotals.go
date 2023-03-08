@@ -35,7 +35,11 @@ func HomeTotals() (UserTotalsResponse, error) {
 		return UserTotalsResponse{}, err
 	}
 
-	if it.TotalRows == 0 {
+	// check if there are any rows in the result
+	var row RowResponse
+	err = it.Next(&row)
+
+	if err == iterator.Done {
 		return UserTotalsResponse{}, errors.New("downstream error: smart dcc network is down or has no data")
 	}
 
