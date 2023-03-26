@@ -5,7 +5,9 @@ import (
 	"errors"
 
 	"cloud.google.com/go/bigquery"
+	"cloud.google.com/go/datastore"
 	"google.golang.org/api/iterator"
+	"jackthomson.com/functions/utils"
 )
 
 type UserTotalsResponse struct {
@@ -18,11 +20,11 @@ type RowResponse struct {
 	Consumption     float64 `json:"consumption,omitempty"`
 }
 
-func HomeTotals() (UserTotalsResponse, error) {
+func IngestHomeTotals() (datastore.Key, error) {
 	client, err := bigquery.NewClient(context.Background(), "home-monitor-373013")
 
 	if err != nil {
-		return UserTotalsResponse{}, err
+		return datastore.Key{}, err
 	}
 
 	defer client.Close()
@@ -32,15 +34,14 @@ func HomeTotals() (UserTotalsResponse, error) {
 	it, err := query.Read(context.Background())
 
 	if err != nil {
-		return UserTotalsResponse{}, err
+		return datastore.Key{}, err
 	}
 
-	// check if there are any rows in the result
 	var row RowResponse
 	err = it.Next(&row)
 
 	if err == iterator.Done {
-		return UserTotalsResponse{}, errors.New("downstream error: smart dcc network is down or has no data")
+		return datastore.Key{}, errors.New("downstream error: smart dcc network is down or has no data")
 	}
 
 	var carbonTotal float64
@@ -53,15 +54,21 @@ func HomeTotals() (UserTotalsResponse, error) {
 		}
 
 		if err != nil {
-			return UserTotalsResponse{}, err
+			return datastore.Key{}, err
 		}
 
 		carbonTotal += row.CarbonIntensity * row.Consumption
 		consumptionTotal += row.Consumption
 	}
-	
+
 	carbonTotal = float64(int(carbonTotal*100)) / 100
 	consumptionTotal = float64(int(consumptionTotal*100)) / 100
 
-	return UserTotalsResponse{CarbonTotal: carbonTotal, ConsumptionTotal: consumptionTotal}, nil
+	key, err := utils.WriteToDatastore(datastore.NameKey("Total", "total", nil), &UserTotalsResponse{CarbonTotal: carbonTotal, ConsumptionTotal: consumptionTotal})
+
+	if err != nil {
+		return datastore.Key{}, err
+	}
+
+	return key, nil
 }

@@ -15,6 +15,7 @@ func main() {
 	http.HandleFunc("/ingestCarbonIntensityData", functions.IngestCarbonIntensityData)
 	http.HandleFunc("/getTotalsForHome", functions.GetTotalsForHome)
 	http.HandleFunc("/triggerConsumptionData", functions.TriggerConsumptionData)
+	http.HandleFunc("/ingestHomeTotals", functions.IngestHomeTotals)
 
 	port := os.Getenv("PORT")
 	if port == "" {

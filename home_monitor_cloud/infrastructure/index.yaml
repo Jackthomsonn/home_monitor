@@ -1,0 +1,7 @@
+indexes:
+
+- kind: Total
+  ancestor: no
+  properties:
+  - name: consumptionTotal
+  - name: carbonTotal

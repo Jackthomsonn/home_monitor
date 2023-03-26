@@ -41,7 +41,8 @@ module "project_services" {
     "cloudbuild.googleapis.com",
     "artifactregistry.googleapis.com",
     "secretmanager.googleapis.com",
-    "cloudscheduler.googleapis.com"
+    "cloudscheduler.googleapis.com",
+    "datastore.googleapis.com"
   ]
 
   disable_services_on_destroy = true
@@ -556,6 +557,29 @@ resource "google_cloud_scheduler_job" "ingest_carbon_intensity_job" {
   ]
 }
 
+resource "google_cloud_scheduler_job" "ingest_home_totals_job" {
+  name             = "home-totals-ingestion-job"
+  project          = var.project
+  region           = var.region
+  description      = "Gets the latest home totals data from big query ingests that data into the datastore"
+  schedule         = "05 08 * * *"
+  time_zone        = "Europe/London"
+  attempt_deadline = "60s"
+
+  retry_config {
+    retry_count = 5
+  }
+
+  http_target {
+    http_method = "GET"
+    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/IngestHomeTotals"
+  }
+
+  depends_on = [
+    module.project_services
+  ]
+}
+
 ##### Ingest data service account
 resource "google_service_account" "ingest_data_iam_service_account" {
   account_id   = "ingest-data-iam-sa"
@@ -583,10 +607,37 @@ resource "google_service_account" "get_totals_for_home_service_account" {
 resource "google_project_iam_member" "get_totals_for_home_service_account_member_roles" {
   project = var.project
   for_each = toset([
-    "roles/bigquery.dataViewer",
-    "roles/secretmanager.secretAccessor",
-    "roles/bigquery.jobUser"
+    "roles/datastore.viewer"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.get_totals_for_home_service_account.email}"
+}
+
+#### Ingest home totals service account
+resource "google_service_account" "ingest_home_totals_service_account" {
+  account_id   = "ingest-home-totals-iam-sa"
+  project      = var.project
+  display_name = "Ingest Home Totals Service Account used for the Ingest Home Totals function"
+}
+
+resource "google_project_iam_member" "ingest_home_totals_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/bigquery.dataViewer",
+    "roles/secretmanager.secretAccessor",
+    "roles/bigquery.jobUser",
+    "roles/datastore.owner"
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.ingest_home_totals_service_account.email}"
+}
+
+#### Datastore
+module "datastore" {
+  source  = "terraform-google-modules/cloud-datastore/google"
+  project = var.project
+  indexes = file("index.yaml")
+  depends_on = [
+    module.project_services
+  ]
 }

@@ -69,3 +69,6 @@ jobs:
       - name: Deploy GetTotalsForHome function
         if: steps.functions-have-changed.outputs.any_changed == 'true'
         run: cd home_monitor_cloud/functions && gcloud functions deploy GetTotalsForHome --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account get-totals-for-home-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
+      - name: Deploy IngestHomeTotals function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy IngestHomeTotals --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account get-totals-for-home-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
