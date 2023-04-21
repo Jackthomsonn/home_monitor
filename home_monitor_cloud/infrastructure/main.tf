@@ -351,16 +351,6 @@ resource "google_project_iam_member" "editor" {
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
 
-# Assign the EMQX service account the pubsub publisher role
-resource "google_project_iam_member" "emqx_pubsub_publisher_iam" {
-  project = var.project
-  role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:${google_service_account.emqx_service_account.email}"
-  depends_on = [
-    module.project_services
-  ]
-}
-
 ##### KMS
 resource "google_kms_key_ring" "home_monitor_keyring" {
   name     = "home-monitor-keyring"
