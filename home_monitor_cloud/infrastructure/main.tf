@@ -184,7 +184,17 @@ resource "google_pubsub_topic" "state_topic_dead_letter" {
   project = var.project
 }
 
-resource "google_pubsub_subscription" "topic_sub" {
+resource "google_pubsub_topic" "consumption_ingestion_topic" {
+  name    = "consumption-ingestion"
+  project = var.project
+}
+
+resource "google_pubsub_topic" "consumption_ingestion_topic_dead_letter" {
+  name    = "consumption-ingestion-deadletter"
+  project = var.project
+}
+
+resource "google_pubsub_subscription" "state_sub" {
   name    = "state-sub"
   project = var.project
   topic   = google_pubsub_topic.state_topic.name
@@ -196,9 +206,14 @@ resource "google_pubsub_subscription" "topic_sub" {
 
   ack_deadline_seconds = 20
 
+  retry_policy {
+    minimum_backoff = "300s"
+    maximum_backoff = "300s"
+  }
+
   dead_letter_policy {
     dead_letter_topic     = google_pubsub_topic.state_topic_dead_letter.id
-    max_delivery_attempts = 5
+    max_delivery_attempts = 10
   }
 
   depends_on = [
@@ -212,19 +227,14 @@ resource "google_pubsub_subscription" "state_topic_dead_letter_sub" {
   project = var.project
   topic   = google_pubsub_topic.state_topic_dead_letter.name
 
-  ack_deadline_seconds = 600
+  ack_deadline_seconds = 20
 
   depends_on = [
     google_pubsub_topic.state_topic_dead_letter
   ]
 }
 
-resource "google_pubsub_topic" "consumption_ingestion_topic" {
-  name    = "consumption-ingestion"
-  project = var.project
-}
-
-resource "google_pubsub_subscription" "consumption_ingestion_topic_sub" {
+resource "google_pubsub_subscription" "consumption_ingestion_sub" {
   name    = "consumption-ingestion-sub"
   project = var.project
   topic   = google_pubsub_topic.consumption_ingestion_topic.name
@@ -232,8 +242,8 @@ resource "google_pubsub_subscription" "consumption_ingestion_topic_sub" {
   ack_deadline_seconds = 20
 
   retry_policy {
-    minimum_backoff = "600s"
-    maximum_backoff = "600s"
+    minimum_backoff = "300s"
+    maximum_backoff = "300s"
   }
 
   push_config {
@@ -250,17 +260,12 @@ resource "google_pubsub_subscription" "consumption_ingestion_topic_sub" {
   ]
 }
 
-resource "google_pubsub_topic" "consumption_ingestion_topic_dead_letter" {
-  name    = "consumption-ingestion-deadletter"
-  project = var.project
-}
-
 resource "google_pubsub_subscription" "consumption_ingestion_topic_dead_letter_sub" {
   name    = "consumption-ingestion-sub-deadletter"
   project = var.project
   topic   = google_pubsub_topic.consumption_ingestion_topic_dead_letter.name
 
-  ack_deadline_seconds = 600
+  ack_deadline_seconds = 20
 
   depends_on = [
     google_pubsub_topic.consumption_ingestion_topic_dead_letter
