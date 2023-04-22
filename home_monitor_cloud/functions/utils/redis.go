@@ -65,3 +65,27 @@ func CreateDataInRedis(data interface{}, key string, ttl time.Duration) error {
 
 	return nil
 }
+
+func RemoveDataFromRedis(key string) error {
+	Logger().Info("Removing data from redis", zap.Field{Key: "key", Type: zapcore.StringType, String: key})
+
+	ctx := context.Background()
+	redisConnectionString, err := GetSecret("projects/345305797254/secrets/redis_connection_string/versions/latest", ctx)
+
+	if err != nil {
+		Logger().Error("Error getting redis connection string", zap.Error(err))
+		return err
+	}
+
+	opt, _ := redis.ParseURL(redisConnectionString)
+	client := redis.NewClient(opt)
+
+	if err := client.Del(ctx, key).Err(); err != nil {
+		Logger().Error("Error removing data from redis", zap.Error(err))
+		return err
+	}
+
+	Logger().Info("Removed data from redis", zap.Field{Key: "key", Type: zapcore.StringType, String: key})
+
+	return nil
+}

@@ -619,7 +619,8 @@ resource "google_service_account" "get_totals_for_home_service_account" {
 resource "google_project_iam_member" "get_totals_for_home_service_account_member_roles" {
   project = var.project
   for_each = toset([
-    "roles/datastore.viewer"
+    "roles/datastore.viewer",
+    "roles/secretmanager.secretAccessor"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.get_totals_for_home_service_account.email}"

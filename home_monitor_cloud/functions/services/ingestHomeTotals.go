@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	"cloud.google.com/go/bigquery"
 	"cloud.google.com/go/datastore"
@@ -48,7 +47,7 @@ func IngestHomeTotals() (datastore.Key, error) {
 
 	if err == iterator.Done {
 		utils.Logger().Error("Error reading bigquery data", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
-		return datastore.Key{}, errors.New("downstream error: smart dcc network is down or has no data")
+		return datastore.Key{}, err
 	}
 
 	var carbonTotal float64
