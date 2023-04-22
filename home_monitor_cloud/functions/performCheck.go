@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"jackthomson.com/functions/enums"
 	"jackthomson.com/functions/models"
 	"jackthomson.com/functions/services"
@@ -21,11 +23,13 @@ type Response struct {
 }
 
 func PerformCheck(w http.ResponseWriter, r *http.Request) {
+	utils.Logger().Info("PerformCheck", zap.Field{Key: "method", Type: zapcore.StringType, String: r.Method}, zap.Field{Key: "url", Type: zapcore.StringType, String: r.URL.String()})
 	w.Header().Set("Content-Type", "application/json")
 
 	var req PerformCheckRequest
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&req); err != nil {
+		utils.Logger().Error("Error decoding request", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
@@ -48,6 +52,7 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
 	data, err := services.GetCarbonIntensity(w, now, nowPlusIntervalInMinutes)
 
 	if err != nil {
+		utils.Logger().Error("Error getting carbon intensity", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
@@ -56,6 +61,7 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
 	carbonintensityResponse, err := determineCarbonIntensity(data)
 
 	if err != nil {
+		utils.Logger().Error("Error determining carbon intensity", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
@@ -63,6 +69,7 @@ func PerformCheck(w http.ResponseWriter, r *http.Request) {
 
 	response := Response{Intensities: carbonintensityResponse}
 
+	utils.Logger().Info("Successfully performed check")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }

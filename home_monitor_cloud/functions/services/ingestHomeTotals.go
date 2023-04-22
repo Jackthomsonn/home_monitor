@@ -6,6 +6,8 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"cloud.google.com/go/datastore"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/api/iterator"
 	"jackthomson.com/functions/utils"
 )
@@ -21,9 +23,12 @@ type RowResponse struct {
 }
 
 func IngestHomeTotals() (datastore.Key, error) {
+	utils.Logger().Info("Ingesting home totals", zap.Field{Key: "function", Type: zapcore.ReflectType, Interface: "IngestHomeTotals"})
+
 	client, err := bigquery.NewClient(context.Background(), "home-monitor-373013")
 
 	if err != nil {
+		utils.Logger().Error("Error creating bigquery client", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
 		return datastore.Key{}, err
 	}
 
@@ -34,6 +39,7 @@ func IngestHomeTotals() (datastore.Key, error) {
 	it, err := query.Read(context.Background())
 
 	if err != nil {
+		utils.Logger().Error("Error reading bigquery data", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
 		return datastore.Key{}, err
 	}
 
@@ -41,6 +47,7 @@ func IngestHomeTotals() (datastore.Key, error) {
 	err = it.Next(&row)
 
 	if err == iterator.Done {
+		utils.Logger().Error("Error reading bigquery data", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
 		return datastore.Key{}, errors.New("downstream error: smart dcc network is down or has no data")
 	}
 
@@ -67,8 +74,11 @@ func IngestHomeTotals() (datastore.Key, error) {
 	key, err := utils.WriteToDatastore(datastore.NameKey("Total", "total", nil), &UserTotalsResponse{CarbonTotal: carbonTotal, ConsumptionTotal: consumptionTotal})
 
 	if err != nil {
+		utils.Logger().Error("Error writing to datastore", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
 		return datastore.Key{}, err
 	}
+
+	utils.Logger().Info("Successfully ingested home totals", zap.Field{Key: "function", Type: zapcore.ReflectType, Interface: "IngestHomeTotals"})
 
 	return key, nil
 }

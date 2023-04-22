@@ -499,6 +499,28 @@ resource "google_secret_manager_secret_version" "consumption_secret_version" {
   ]
 }
 
+resource "google_secret_manager_secret" "redis_connection_string" {
+  secret_id = "redis_connection_string"
+  project   = var.project
+
+  replication {
+    automatic = true
+  }
+
+  depends_on = [
+    module.project_services
+  ]
+}
+
+resource "google_secret_manager_secret_version" "redis_connection_string_version" {
+  secret      = google_secret_manager_secret.redis_connection_string.id
+  secret_data = data.sops_file.secrets.data["redis_connection_string"]
+
+  depends_on = [
+    google_secret_manager_secret.redis_connection_string
+  ]
+}
+
 ##### Cloud scheduler jobs
 resource "google_cloud_scheduler_job" "job" {
   name             = "consumption-ingestion-job"

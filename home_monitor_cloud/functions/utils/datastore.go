@@ -4,43 +4,44 @@ import (
 	"context"
 
 	"cloud.google.com/go/datastore"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
-type Total struct {
-	ConsumptionTotal float64 `json:"consumptionTotal,omitempty"`
-	CarbonTotal      float64 `json:"carbonTotal,omitempty"`
-}
-
 func WriteToDatastore(name_key *datastore.Key, data interface{}) (datastore.Key, error) {
+	Logger().Info("Writing to datastore", zap.Field{Key: "name_key", Type: zapcore.ReflectType, Interface: name_key}, zap.Field{Key: "data", Type: zapcore.ReflectType, Interface: data})
+
 	data_store, data_store_err := datastore.NewClient(context.Background(), "home-monitor-373013")
 
 	if data_store_err != nil {
+		Logger().Error("Error creating datastore client", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: data_store_err})
 		return datastore.Key{}, data_store_err
 	}
 
 	key, err := data_store.Put(context.Background(), name_key, data)
 
 	if err != nil {
+		Logger().Error("Error writing to datastore", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
 		return datastore.Key{}, err
 	}
 
 	return *key, nil
 }
 
-func ReadFromDatastore(name_key *datastore.Key) (interface{}, error) {
-	data_store, data_store_err := datastore.NewClient(context.Background(), "home-monitor-373013")
+func ReadFromDatastore(nameKey *datastore.Key, dest interface{}) error {
+	Logger().Info("Reading from datastore", zap.Field{Key: "nameKey", Type: zapcore.ReflectType, Interface: nameKey})
 
-	if data_store_err != nil {
-		return nil, data_store_err
-	}
-
-	var data Total = Total{CarbonTotal: 0, ConsumptionTotal: 0}
-
-	err := data_store.Get(context.Background(), name_key, &data)
+	client, err := datastore.NewClient(context.Background(), "home-monitor-373013")
 
 	if err != nil {
-		return nil, err
+		Logger().Error("Error creating datastore client", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
+		return err
 	}
 
-	return data, nil
+	if err := client.Get(context.Background(), nameKey, dest); err != nil {
+		Logger().Error("Error getting data from datastore", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
+		return err
+	}
+
+	return nil
 }

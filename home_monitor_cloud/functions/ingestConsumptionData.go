@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"jackthomson.com/functions/models"
 	"jackthomson.com/functions/utils"
 )
@@ -34,11 +36,13 @@ type ConsumptionResponse struct {
 }
 
 func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
+	utils.Logger().Info("IngestConsumptionData", zap.Field{Key: "method", Type: zapcore.StringType, String: r.Method}, zap.Field{Key: "url", Type: zapcore.StringType, String: r.URL.String()})
 	w.Header().Set("Content-Type", "application/json")
 
 	response, err := getConsumptionData(w)
 
 	if err != nil {
+		utils.Logger().Error("Error getting consumption data", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
@@ -49,10 +53,13 @@ func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
 	bigqueryErr := utils.InsertDataIntoBiqQuery(context.Background(), response.Values, "home_monitor_consumption_table")
 
 	if bigqueryErr != nil {
+		utils.Logger().Error("Error inserting consumption data", zap.Error(bigqueryErr))
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
+
+	utils.Logger().Info("Successfully ingested consumption data", zap.Field{Key: "start", Type: zapcore.StringType, String: response.Start}, zap.Field{Key: "end", Type: zapcore.StringType, String: response.End})
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

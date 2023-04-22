@@ -5,26 +5,33 @@ import (
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+	"go.uber.org/zap/zapcore"
 )
 
 func GetSecret(secret_name string, ctx context.Context) (response string, error error) {
-  secret_manager_client, err := secretmanager.NewClient(ctx)
+	Logger().Info("Getting secret", zapcore.Field{Key: "secret_name", Type: zapcore.StringType, String: secret_name}, zapcore.Field{Key: "ctx", Type: zapcore.ReflectType, Interface: ctx})
 
-  if err != nil {
-    return "", err
-  }
-  
-  defer secret_manager_client.Close()
+	secret_manager_client, err := secretmanager.NewClient(ctx)
 
-  secret_req := &secretmanagerpb.AccessSecretVersionRequest{
-    Name: secret_name,
-  }
+	if err != nil {
+		Logger().Error("Error creating secret manager client", zapcore.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
+		return "", err
+	}
 
-  result, err := secret_manager_client.AccessSecretVersion(ctx, secret_req)
+	defer secret_manager_client.Close()
 
-  if err != nil {
-    return "", err
-  }
+	secret_req := &secretmanagerpb.AccessSecretVersionRequest{
+		Name: secret_name,
+	}
 
-  return string(result.Payload.Data), nil
+	result, err := secret_manager_client.AccessSecretVersion(ctx, secret_req)
+
+	if err != nil {
+		Logger().Error("Error getting secret", zapcore.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
+		return "", err
+	}
+
+	Logger().Info("Successfully got secret", zapcore.Field{Key: "secret_name", Type: zapcore.StringType, String: secret_name}, zapcore.Field{Key: "ctx", Type: zapcore.ReflectType, Interface: ctx})
+
+	return string(result.Payload.Data), nil
 }

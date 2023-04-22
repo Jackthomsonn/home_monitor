@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"jackthomson.com/functions/models"
 	"jackthomson.com/functions/services"
 	"jackthomson.com/functions/utils"
@@ -18,6 +20,7 @@ type CarbonIntensityIngestion struct {
 }
 
 func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
+	utils.Logger().Info("IngestCarbonIntensityData", zap.Field{Key: "method", Type: zapcore.StringType, String: r.Method}, zap.Field{Key: "url", Type: zapcore.StringType, String: r.URL.String()})
 	w.Header().Set("Content-Type", "application/json")
 
 	utc := time.Now().UTC().Truncate(time.Second)
@@ -28,6 +31,7 @@ func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
 	data, err := services.GetCarbonIntensity(w, previousDay, now)
 
 	if err != nil {
+		utils.Logger().Error("Error getting carbon intensity data", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
@@ -44,10 +48,13 @@ func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = utils.InsertDataIntoBiqQuery(context.Background(), ingestionValues, "home_monitor_carbon_intensity"); err != nil {
+		utils.Logger().Error("Error inserting carbon intensity data", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
+
+	utils.Logger().Info("Successfully ingested carbon intensity data")
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(ingestionValues)
