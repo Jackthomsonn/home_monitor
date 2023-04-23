@@ -132,9 +132,5 @@ func getConsumptionData(w http.ResponseWriter) (ConsumptionResponse, error) {
 
 	utils.Logger().Info("Successfully retrieved consumption data", zap.Field{Key: "start", Type: zapcore.StringType, String: response.Start}, zap.Field{Key: "end", Type: zapcore.StringType, String: response.End})
 
-	if err := utils.RemoveDataFromRedis("Total"); err != nil {
-		utils.Logger().Error("Error removing data from redis", zap.Error(err))
-	}
-
 	return response, nil
 }

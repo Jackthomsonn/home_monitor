@@ -119,6 +119,46 @@ module "consumption-ingestion-pubsub" {
   ]
 }
 
+module "carbon-intensity-ingestion-pubsub" {
+  source     = "./modules/pubsub"
+  project    = var.project
+  topic_name = "carbon-intensity-ingestion"
+
+  retry_policy = [{
+    minimum_backoff = "10s"
+    maximum_backoff = "20s"
+  }]
+  max_delivery_attempts = 10
+
+  push_config = [{
+    push_endpoint = "https://${var.region}-${var.project}.cloudfunctions.net/IngestCarbonIntensityData"
+  }]
+
+  depends_on_config = [
+    module.project_services
+  ]
+}
+
+module "home-totals-ingestion-pubsub" {
+  source     = "./modules/pubsub"
+  project    = var.project
+  topic_name = "home-totals-ingestion"
+
+  retry_policy = [{
+    minimum_backoff = "10s"
+    maximum_backoff = "20s"
+  }]
+  max_delivery_attempts = 10
+
+  push_config = [{
+    push_endpoint = "https://${var.region}-${var.project}.cloudfunctions.net/IngestHomeTotals"
+  }]
+
+  depends_on_config = [
+    module.project_services
+  ]
+}
+
 ##### Networking
 resource "google_compute_network" "vpc_network" {
   project                 = var.project
@@ -374,7 +414,9 @@ resource "google_cloud_scheduler_job" "job" {
   http_target {
     http_method = "POST"
     uri         = "https://${var.region}-${var.project}.cloudfunctions.net/TriggerConsumptionData"
-    body        = base64encode(jsonencode({}))
+    body = base64encode(jsonencode({
+      topic_name : "consumption-ingestion"
+    }))
   }
 
   depends_on = [
@@ -396,8 +438,11 @@ resource "google_cloud_scheduler_job" "ingest_carbon_intensity_job" {
   }
 
   http_target {
-    http_method = "GET"
-    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/IngestCarbonIntensityData"
+    http_method = "POST"
+    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/TriggerConsumptionData"
+    body = base64encode(jsonencode({
+      topic_name : "carbon-intensity-ingestion"
+    }))
   }
 
   depends_on = [
@@ -419,8 +464,11 @@ resource "google_cloud_scheduler_job" "ingest_home_totals_job" {
   }
 
   http_target {
-    http_method = "GET"
-    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/IngestHomeTotals"
+    http_method = "POST"
+    uri         = "https://${var.region}-${var.project}.cloudfunctions.net/TriggerConsumptionData"
+    body = base64encode(jsonencode({
+      topic_name : "home-totals-ingestion"
+    }))
   }
 
   depends_on = [

@@ -79,5 +79,9 @@ func IngestHomeTotals() (datastore.Key, error) {
 
 	utils.Logger().Info("Successfully ingested home totals", zap.Field{Key: "function", Type: zapcore.ReflectType, Interface: "IngestHomeTotals"})
 
+	if err := utils.RemoveDataFromRedis("Total"); err != nil {
+		utils.Logger().Error("Error removing data from redis", zap.Error(err))
+	}
+
 	return key, nil
 }

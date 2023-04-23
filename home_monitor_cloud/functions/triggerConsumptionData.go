@@ -10,11 +10,15 @@ import (
 	"jackthomson.com/functions/utils"
 )
 
+type Request struct {
+	TopicName string `json:"topicName"`
+}
+
 func TriggerConsumptionData(w http.ResponseWriter, r *http.Request) {
 	utils.Logger().Info("TriggerConsumptionData", zap.Field{Key: "method", Type: zapcore.StringType, String: r.Method}, zap.Field{Key: "url", Type: zapcore.StringType, String: r.URL.String()})
 	w.Header().Set("Content-Type", "application/json")
 
-	var data Data
+	var data Request
 	decoder := json.NewDecoder(r.Body)
 
 	if err := decoder.Decode(&data); err != nil {
@@ -26,7 +30,8 @@ func TriggerConsumptionData(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	id, err := utils.PublishDataToGCP(nil, "consumption-ingestion")
+	utils.Logger().Info("Publishing data to GCP", zap.Field{Key: "topicName", Type: zapcore.StringType, String: data.TopicName})
+	id, err := utils.PublishDataToGCP(nil, data.TopicName)
 	if err != nil {
 		utils.Logger().Error("Error publishing data to GCP", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -34,7 +39,7 @@ func TriggerConsumptionData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.Logger().Info("Successfully published data to GCP")
+	utils.Logger().Info("Successfully published data to GCP", zap.Field{Key: "topicName", Type: zapcore.StringType, String: data.TopicName}, zap.Field{Key: "id", Type: zapcore.StringType, String: id})
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(ResponseType{Type: "Success", Id: id})
