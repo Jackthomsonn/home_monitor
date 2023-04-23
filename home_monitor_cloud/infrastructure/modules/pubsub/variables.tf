@@ -61,3 +61,21 @@ variable "push_config" {
   default     = []
 }
 
+variable "schema_name" {
+  type        = string
+  description = "The name of the schema to create"
+  default     = ""
+}
+
+variable "schema_type" {
+  type        = string
+  description = "The type of the schema to create"
+  default     = ""
+}
+
+variable "schema_definition" {
+  type        = string
+  description = "The definition of the schema to create"
+  default     = ""
+}
+

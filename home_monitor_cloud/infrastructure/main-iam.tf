@@ -7,7 +7,7 @@ resource "google_project_service" "iam" {
 resource "google_project_iam_member" "pubsub_publisher_iam" {
   project = var.project
   role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:service-${var.project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 
   depends_on = [
     google_project_service.iam
@@ -18,7 +18,7 @@ resource "google_project_iam_member" "pubsub_publisher_iam" {
 resource "google_project_iam_member" "pubsub_subscriber_iam" {
   project = var.project
   role    = "roles/pubsub.subscriber"
-  member  = "serviceAccount:service-${var.project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 
   depends_on = [
     google_project_service.iam
@@ -29,7 +29,7 @@ resource "google_project_iam_member" "pubsub_subscriber_iam" {
 resource "google_project_iam_member" "viewer" {
   project = var.project
   role    = "roles/bigquery.metadataViewer"
-  member  = "serviceAccount:service-${var.project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 
   depends_on = [
     google_project_service.iam
@@ -40,7 +40,7 @@ resource "google_project_iam_member" "viewer" {
 resource "google_project_iam_member" "editor" {
   project = var.project
   role    = "roles/bigquery.dataEditor"
-  member  = "serviceAccount:service-${var.project_number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 
   depends_on = [
     google_project_service.iam

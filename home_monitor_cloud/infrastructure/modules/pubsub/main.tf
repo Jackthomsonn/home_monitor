@@ -76,3 +76,11 @@ resource "google_pubsub_subscription" "topic_subscription_dead_letter" {
     google_pubsub_topic.topic_dead_letter
   ]
 }
+
+resource "google_pubsub_schema" "schema" {
+  count      = var.schema_name == "" ? 0 : 1
+  name       = var.schema_name
+  project    = var.project
+  type       = var.schema_type
+  definition = var.schema_definition
+}

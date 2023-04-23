@@ -36,7 +36,7 @@ resource "google_compute_instance" "emqx_instance" {
 
 
   metadata = {
-    ssh-keys = "user:${var.secrets.data["ssh_key"]}"
+    ssh-keys = "user:${data.sops_file.secrets.data["ssh_key"]}"
   }
 
   scheduling {
@@ -51,7 +51,7 @@ resource "google_compute_instance" "emqx_instance" {
   }
 
   network_interface {
-    network = var.network_name
+    network = google_compute_network.vpc_network.name
     access_config {
       nat_ip = google_compute_address.emqx_static_ip.address
     }
