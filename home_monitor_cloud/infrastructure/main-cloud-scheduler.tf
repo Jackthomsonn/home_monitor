@@ -15,7 +15,7 @@ resource "google_cloud_scheduler_job" "job" {
     http_method = "POST"
     uri         = "https://${var.region}-${var.project}.cloudfunctions.net/TriggerConsumptionData"
     body = base64encode(jsonencode({
-      topic_name : "consumption-ingestion"
+      topicName : "consumption-ingestion"
     }))
   }
 
@@ -41,7 +41,7 @@ resource "google_cloud_scheduler_job" "ingest_carbon_intensity_job" {
     http_method = "POST"
     uri         = "https://${var.region}-${var.project}.cloudfunctions.net/TriggerConsumptionData"
     body = base64encode(jsonencode({
-      topic_name : "carbon-intensity-ingestion"
+      topicName : "carbon-intensity-ingestion"
     }))
   }
 
@@ -67,7 +67,7 @@ resource "google_cloud_scheduler_job" "ingest_home_totals_job" {
     http_method = "POST"
     uri         = "https://${var.region}-${var.project}.cloudfunctions.net/TriggerConsumptionData"
     body = base64encode(jsonencode({
-      topic_name : "home-totals-ingestion"
+      topicName : "home-totals-ingestion"
     }))
   }
 
