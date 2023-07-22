@@ -1,0 +1,30 @@
+openapi: 3.0.1
+info:
+  title: Home Monitor Plugin
+  description: The Home Monitor Plugin to get information about your home
+  version: 'v1'
+servers:
+  - url: https://europe-west1-home-monitor-373013.cloudfunctions.net/GetTotalsForHome
+paths:
+  /:
+    get:
+      operationId: getTotalsForHome
+      summary: Get the totals for a home
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getTotalsForHomeResponse'
+components:
+  schemas:
+    getTotalsForHomeResponse:
+      type: object
+      properties:
+        carbonTotal:
+          type: number
+          description: The total carbon emitted in the last 24 hours
+        consumptionTotal:
+          type: number
+          description: The total energy consumption in the last 24 hours

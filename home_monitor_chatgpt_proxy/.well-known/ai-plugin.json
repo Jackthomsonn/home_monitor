@@ -1,0 +1,17 @@
+{
+    "schema_version": "v1",
+    "name_for_human": "Home Monitor",
+    "name_for_model": "home_monitor",
+    "description_for_human": "View information about your home with Home Monitor",
+    "description_for_model": "View information about your home with Home Monitor",
+    "auth": {
+        "type": "none"
+    },
+    "api": {
+        "type": "openapi",
+        "url": "http://0.0.0.0:5003/openapi.yaml"
+    },
+    "logo_url": "http://0.0.0.0:5003/logo.png",
+    "contact_email": "hello@jackthomson.co.uk",
+    "legal_info_url": "http://www.jackthomson.co.uk"
+}
