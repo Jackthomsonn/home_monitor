@@ -1,13 +1,15 @@
 defmodule HomeMonitor.Application do
   use Application
 
+  require NodeJS
   require Logger
 
   @impl true
   def start(_type, _args) do
     children =
       [
-        HomeMonitor.Hm.HmSup
+        HomeMonitor.Hm.HmSup,
+        HomeMonitor.Tp.TpSup
       ] ++ children(target())
 
     opts = [strategy: :one_for_one, name: HomeMonitor.Supervisor]
@@ -29,3 +31,5 @@ defmodule HomeMonitor.Application do
     Application.get_env(:home_monitor, :target)
   end
 end
+
+# NodeJS.call({"index", :startDiscovery}, [])

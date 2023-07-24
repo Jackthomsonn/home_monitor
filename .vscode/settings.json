@@ -1,6 +1,15 @@
 {
   "[python]": {
-    "editor.defaultFormatter": "ms-python.autopep8"
+    "editor.defaultFormatter": "ms-python.autopep8",
   },
-  "python.formatting.provider": "none"
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "rome.rome",
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "rome.rome",
+  },
+  "[elixir]": {
+    "editor.defaultFormatter": "JakeBecker.elixir-ls",
+  },
+  "elixirLS.projectDir": "home_monitor/",
 }

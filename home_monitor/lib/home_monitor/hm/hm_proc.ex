@@ -42,6 +42,8 @@ defmodule HomeMonitor.Hm.HmProc do
   end
 
   def handle_continue(:start_emqtt, %{pid: pid} = st) do
+    clientid = get_clientid()
+
     case :emqtt.connect(pid) do
       {:ok, _prop} ->
         Logger.info("EMQTT: Connected")
@@ -49,6 +51,8 @@ defmodule HomeMonitor.Hm.HmProc do
       {:error, reason} ->
         Logger.error("EMQTT: Failed to connect: #{inspect(reason)}")
     end
+
+    {:ok, _, _} = :emqtt.subscribe(pid, {"commands/#{clientid}/+", 1})
 
     {:noreply, st}
   end
@@ -61,6 +65,27 @@ defmodule HomeMonitor.Hm.HmProc do
 
   def handle_info({:publish, publish}, st) do
     handle_publish(parse_topic(publish), publish, st)
+  end
+
+  def handle_info(_, st) do
+    {:noreply, st}
+  end
+
+  defp handle_publish(["commands", _, "test"], %{payload: payload}, st) do
+    case JSON.decode(payload) do
+      {:ok, %{"device_id" => device_id, "action" => "turn_on"}} ->
+        Logger.info("HmProc: Received turn on command")
+        HomeMonitor.Tp.TpProc.turn_on(device_id)
+
+      {:ok, %{"device_id" => device_id, "action" => "turn_off"}} ->
+        Logger.info("HmProc: Received turn off command")
+        HomeMonitor.Tp.TpProc.turn_off(device_id)
+
+      {:error, reason} ->
+        Logger.error("HmProc: Failed to decode test command: #{inspect(reason)}")
+    end
+
+    {:noreply, st}
   end
 
   defp handle_publish(_, _, st) do

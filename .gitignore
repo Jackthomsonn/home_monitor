@@ -8,3 +8,5 @@ home_monitor/config/runtime.exs
 home_monitor_cloud/functions/dist
 home_monitor/config/target.exs
 Deploy.md
+home_monitor_frontend/node_modules/**
+**/node_modules
