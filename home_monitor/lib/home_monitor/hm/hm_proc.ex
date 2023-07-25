@@ -12,10 +12,6 @@ defmodule HomeMonitor.Hm.HmProc do
     GenServer.start_link(__MODULE__, [])
   end
 
-  def get_clientid() do
-    hal_system().get_board_id()
-  end
-
   def init([]) do
     interval = Application.fetch_env!(:home_monitor, :interval)
 
@@ -67,19 +63,13 @@ defmodule HomeMonitor.Hm.HmProc do
     handle_publish(parse_topic(publish), publish, st)
   end
 
-  def handle_info(_, st) do
-    {:noreply, st}
-  end
-
   defp handle_publish(["commands", _, "test"], %{payload: payload}, st) do
     case JSON.decode(payload) do
       {:ok, %{"device_id" => device_id, "action" => "turn_on"}} ->
-        Logger.info("HmProc: Received turn on command")
-        HomeMonitor.Tp.TpProc.turn_on(device_id)
+        hal_system().turn_on(device_id)
 
       {:ok, %{"device_id" => device_id, "action" => "turn_off"}} ->
-        Logger.info("HmProc: Received turn off command")
-        HomeMonitor.Tp.TpProc.turn_off(device_id)
+        hal_system().turn_off(device_id)
 
       {:error, reason} ->
         Logger.error("HmProc: Failed to decode test command: #{inspect(reason)}")
@@ -119,5 +109,9 @@ defmodule HomeMonitor.Hm.HmProc do
       {:error, reason} ->
         Logger.error("HmProc: Failed to encode temperature: #{inspect(reason)}")
     end
+  end
+
+  defp get_clientid() do
+    hal_system().get_board_id()
   end
 end

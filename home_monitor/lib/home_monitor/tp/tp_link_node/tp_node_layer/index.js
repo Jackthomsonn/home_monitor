@@ -37,16 +37,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var tplink_smarthome_api_1 = require("tplink-smarthome-api");
+var plug_1 = require("./devices/plug");
 var client = new tplink_smarthome_api_1.Client();
+var deviceFactory = {
+    plug: new plug_1.DevicePlug(),
+};
 var startDiscovery = function () {
     return new Promise(function (resolve) {
         client.startDiscovery().on("device-new", function (device) { return __awaiter(void 0, void 0, void 0, function () {
             var info;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        if (!(device.deviceType === "plug")) return [3, 2];
-                        return [4, device.getInfo()];
+                    case 0: return [4, device.getInfo()];
                     case 1:
                         info = (_a.sent());
                         resolve({
@@ -54,8 +56,7 @@ var startDiscovery = function () {
                             deviceName: info.sysInfo.alias,
                             emeter: info.emeter,
                         });
-                        _a.label = 2;
-                    case 2: return [2];
+                        return [2];
                 }
             });
         }); });
@@ -66,13 +67,16 @@ var turnOn = function (deviceId) { return __awaiter(void 0, void 0, void 0, func
         return [2, new Promise(function (resolve) {
                 client.startDiscovery().on("device-new", function (device) { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
-                        if (device.deviceType === "plug") {
-                            if (device.deviceId === deviceId) {
-                                device.setPowerState(true);
+                        switch (_a.label) {
+                            case 0:
+                                if (!(device.deviceId === deviceId)) return [3, 2];
+                                return [4, deviceFactory[device.deviceType].powerOn(device)];
+                            case 1:
+                                _a.sent();
                                 resolve({});
-                            }
+                                _a.label = 2;
+                            case 2: return [2];
                         }
-                        return [2];
                     });
                 }); });
             })];
@@ -83,11 +87,16 @@ var turnOff = function (deviceId) { return __awaiter(void 0, void 0, void 0, fun
         return [2, new Promise(function (resolve) {
                 client.startDiscovery().on("device-new", function (device) { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
-                        if (device.deviceId === deviceId) {
-                            device.setPowerState(false);
-                            resolve({});
+                        switch (_a.label) {
+                            case 0:
+                                if (!(device.deviceId === deviceId)) return [3, 2];
+                                return [4, deviceFactory[device.deviceType].powerOff(device)];
+                            case 1:
+                                _a.sent();
+                                resolve({});
+                                _a.label = 2;
+                            case 2: return [2];
                         }
-                        return [2];
                     });
                 }); });
             })];

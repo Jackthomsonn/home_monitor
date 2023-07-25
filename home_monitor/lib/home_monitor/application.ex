@@ -1,7 +1,6 @@
 defmodule HomeMonitor.Application do
   use Application
 
-  require NodeJS
   require Logger
 
   @impl true
@@ -31,5 +30,3 @@ defmodule HomeMonitor.Application do
     Application.get_env(:home_monitor, :target)
   end
 end
-
-# NodeJS.call({"index", :startDiscovery}, [])
