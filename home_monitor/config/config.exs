@@ -10,6 +10,8 @@ Application.start(:nerves_bootstrap)
 
 config :home_monitor, :interval, 60000
 
+config :logger, level: :info
+
 config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
 
 config :nerves, source_date_epoch: "1671808184"

@@ -65,7 +65,5 @@ defmodule HomeMonitor.Helpers.DefDelegate do
     integer_list = Enum.map(string_list, &String.to_integer/1)
 
     tuple = List.to_tuple(integer_list)
-
-    IO.inspect(tuple)
   end
 end

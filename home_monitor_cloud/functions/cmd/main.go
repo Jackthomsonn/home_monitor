@@ -10,7 +10,6 @@ import (
 
 func main() {
 	http.HandleFunc("/publishData", functions.PublishData)
-	http.HandleFunc("/performCheck", functions.PerformCheck)
 	http.HandleFunc("/ingestConsumptionData", functions.IngestConsumptionData)
 	http.HandleFunc("/ingestCarbonIntensityData", functions.IngestCarbonIntensityData)
 	http.HandleFunc("/getTotalsForHome", functions.GetTotalsForHome)

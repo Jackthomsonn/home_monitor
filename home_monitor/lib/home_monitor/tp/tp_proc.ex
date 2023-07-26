@@ -31,11 +31,15 @@ defmodule HomeMonitor.Tp.TpProc do
   def handle_plug_action("turn_on", device_ip) do
     TpLink.local_device(device_ip)
     |> TpLink.Type.Plug.set_relay_state(true)
+
+    Logger.info("TpProc: Turned on plug")
   end
 
   def handle_plug_action("turn_off", device_ip) do
     TpLink.local_device(device_ip)
     |> TpLink.Type.Plug.set_relay_state(false)
+
+    Logger.info("TpProc: Turned off plug")
   end
 
   def handle_plug_action(_, _device_ip) do
@@ -57,7 +61,6 @@ defmodule HomeMonitor.Tp.TpProc do
   end
 
   def monitor_plug(device_details) do
-    IO.inspect(device_details, label: "Device details")
     device = TpLink.local_device(device_details.ip)
 
     with {:ok, info} <- TpLink.Type.Plug.get_energy_meter_information(device) do
