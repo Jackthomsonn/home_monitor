@@ -1,5 +1,5 @@
-response=$(curl -u 'admin:<password>' \
-     -X 'POST' '<host>/api/v5/api_key' \
+response=$(curl -u '<username>:<password>' \
+     -X 'POST' '<url>/api/v5/api_key' \
      -H 'accept: application/json' \
      -H 'Content-Type: application/json' \
      -d '{
@@ -12,17 +12,17 @@ response=$(curl -u 'admin:<password>' \
 api_key=$(echo $response | jq -r '.api_key')
 api_secret=$(echo $response | jq -r '.api_secret')
 
-curl -X POST '<host>/api/v5/bridges' \
+curl -X POST '<url>/api/v5/bridges' \
      -u ${api_key}:${api_secret} \
      -H "Content-Type: application/json" \
      -d '{
- "body": "{\"temperature\":${temperature},\"client_id\":\"${clientid}\",\"timestamp\":\"${timestamp}\"}",
+ "body": "{\"payload\":\"{current_ma: ${payload.current_ma}, power_mw: ${payload.power_mw}, total_wh: ${payload.total_wh}, voltage_mv: ${payload.voltage_mv}, ip: ${payload.ip}, alias: ${payload.alias} }\",\"topic\":\"${topic}\",\"timestamp\":\"${timestamp}\",\"client_id\":\"${client_id}\",\"type\":\"energy\"}",
  "connect_timeout": "10s",
   "enable": true,
   "enable_pipelining": 100,
   "max_retries": 5,
   "method": "post",
-  "name": "data_publisher",
+  "name": "energy_data_publisher",
   "pool_size": 4,
   "pool_type": "random",
   "request_timeout": "10s",
@@ -34,18 +34,23 @@ curl -X POST '<host>/api/v5/bridges' \
 }'
 
 
-curl -X POST '<host>/api/v5/rules' \
+curl -X POST '<url>/api/v5/rules' \
      -u ${api_key}:${api_secret} \
      -H "Content-Type: application/json" \
      -d '{
-  "name": "state_pub",
-  "sql": "SELECT payload.temperature as temperature,
-       payload.timestamp as timestamp,
-       clientid as clientid
-
-FROM \"reports/#\"",
+  "name": "publish_energy_data",
+  "sql": "SELECT payload.current_ma,
+       payload.power_mw,
+       payload.total_wh,
+       payload.voltage_mv,
+       payload.ip,
+       payload.alias,
+       topic,
+       clientid as client_id,
+       payload.timestamp as timestamp
+       FROM \"reports/+/energy\"",
   "actions": [
-    "webhook:data_publisher"
+    "webhook:energy_data_publisher"
   ],
   "enable": true,
   "metadata": {}
