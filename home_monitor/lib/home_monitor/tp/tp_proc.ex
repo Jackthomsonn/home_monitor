@@ -14,7 +14,7 @@ defmodule HomeMonitor.Tp.TpProc do
   end
 
   def init([]) do
-    Process.send_after(self(), :monitor_energy_consumption, 5_000)
+    Process.send_after(self(), :monitor_energy_consumption, 60_000)
     {:ok, []}
   end
 
@@ -53,7 +53,7 @@ defmodule HomeMonitor.Tp.TpProc do
         Logger.error("TpProc: Failed to list devices: #{inspect(reason)}")
     end
 
-    Process.send_after(self(), :monitor_energy_consumption, 5_000)
+    Process.send_after(self(), :monitor_energy_consumption, 60_000)
   end
 
   def monitor_plug(device_details) do

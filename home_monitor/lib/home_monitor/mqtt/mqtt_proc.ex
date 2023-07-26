@@ -67,6 +67,14 @@ defmodule HomeMonitor.Mqtt.MqttProc do
 
   # Handle pushing data
   def handle_cast({:publish, topic, payload}, state) do
+    payload =
+      Map.put(
+        payload,
+        "timestamp",
+        DateTime.utc_now()
+        |> DateTime.to_iso8601()
+      )
+
     payload = JSON.encode!(payload)
 
     case :emqtt.publish(state.pid, "reports/#{state.emqtt_opts[:clientid]}/#{topic}", payload) do
