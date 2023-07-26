@@ -3,77 +3,85 @@ defmodule HomeMonitor.Tp.TpProc do
 
   require Logger
 
+  import HomeMonitor.Helpers.DefDelegate
+
+  @hal_system Application.compile_env!(:home_monitor, :hal_system)
+
+  def_get_impl(:hal_system, impl: @hal_system)
+
   def start_link([]) do
-    path =
-      __ENV__.file
-      |> Path.dirname()
-      |> Path.join("tp_link_node")
-      |> Path.join("tp_node_layer")
-
-    GenServer.start_link(__MODULE__, [path])
+    GenServer.start_link(__MODULE__, [])
   end
 
-  def init([path]) do
-    NodeJS.start_link(path: path)
+  def init([]) do
+    Process.send_after(self(), :monitor_energy_consumption, 5_000)
+    {:ok, []}
+  end
 
-    case start_discovery() do
-      {:ok, _} ->
-        {:ok, []}
+  def send_command(action, device_ip, device_type) do
+    case device_type do
+      "plug" ->
+        handle_plug_action(action, device_ip)
 
-      {:error, reason} ->
-        {:error, reason}
+      _ ->
+        Logger.error("TpProc: Unknown device type: #{inspect(device_type)}")
     end
   end
 
-  def start_discovery() do
-    Logger.info("Starting discovery")
+  def handle_plug_action("turn_on", device_ip) do
+    TpLink.local_device(device_ip)
+    |> TpLink.Type.Plug.set_relay_state(true)
+  end
 
-    case NodeJS.call({"index", :startDiscovery}, []) do
+  def handle_plug_action("turn_off", device_ip) do
+    TpLink.local_device(device_ip)
+    |> TpLink.Type.Plug.set_relay_state(false)
+  end
+
+  def handle_plug_action(_, _device_ip) do
+    Logger.error("TpProc: Unknown plug action")
+  end
+
+  def monitor_energy_consumption() do
+    case TpLink.Local.list_devices() do
       {:ok, devices} ->
-        Logger.info("Discovered devices: #{inspect(devices)}")
-
-        {:ok, devices}
+        devices
+        |> Enum.filter(fn device -> Map.get(device.system_info, "feature") == "TIM:ENE" end)
+        |> Enum.map(fn device -> monitor_plug(device) end)
 
       {:error, reason} ->
-        Logger.info("Failed to start discovery: #{inspect(reason)}")
+        Logger.error("TpProc: Failed to list devices: #{inspect(reason)}")
+    end
 
-        {:error, reason}
+    Process.send_after(self(), :monitor_energy_consumption, 5_000)
+  end
+
+  def monitor_plug(device_details) do
+    IO.inspect(device_details, label: "Device details")
+    device = TpLink.local_device(device_details.ip)
+
+    with {:ok, info} <- TpLink.Type.Plug.get_energy_meter_information(device) do
+      packet = %{
+        "voltage_mv" => Map.get(info, "voltage_mv"),
+        "current_ma" => Map.get(info, "current_ma"),
+        "power_mw" => Map.get(info, "power_mw"),
+        "total_wh" => Map.get(info, "total_wh"),
+        "err_code" => Map.get(info, "err_code"),
+        "err_msg" => Map.get(info, "err_msg"),
+        "ip" => Tuple.to_list(device_details.ip) |> Enum.join("."),
+        "alias" => Map.get(device_details.system_info, "alias")
+      }
+
+      HomeMonitor.Mqtt.MqttProc.publish("energy", packet)
+    else
+      {:error, reason} ->
+        Logger.error("TpProc: Failed to get energy data: #{inspect(reason)}")
     end
   end
 
-  def turn_on(device_id) do
-    task =
-      Task.async(fn ->
-        case NodeJS.call({"index", :turnOn}, [device_id]) do
-          {:ok, _} ->
-            Logger.info("Turned on device")
-            {:ok, :device_turned_on}
+  def handle_info(:monitor_energy_consumption, state) do
+    monitor_energy_consumption()
 
-          {:error, reason} ->
-            Logger.info("Failed to turn on device: #{inspect(reason)}")
-
-            {:error, reason}
-        end
-      end)
-
-    Task.await(task)
-  end
-
-  def turn_off(device_id) do
-    task =
-      Task.async(fn ->
-        case NodeJS.call({"index", :turnOff}, [device_id]) do
-          {:ok, _} ->
-            Logger.info("Turned off device")
-            {:ok, :device_turned_off}
-
-          {:error, reason} ->
-            Logger.info("Failed to turn off device: #{inspect(reason)}")
-
-            {:error, reason}
-        end
-      end)
-
-    Task.await(task)
+    {:noreply, state}
   end
 end

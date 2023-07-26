@@ -7,7 +7,7 @@ defmodule HomeMonitor.Application do
   def start(_type, _args) do
     children =
       [
-        HomeMonitor.Hm.HmSup,
+        HomeMonitor.Mqtt.MqttSup,
         HomeMonitor.Tp.TpSup
       ] ++ children(target())
 

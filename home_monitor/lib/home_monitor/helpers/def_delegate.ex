@@ -58,4 +58,14 @@ defmodule HomeMonitor.Helpers.DefDelegate do
   def get_env(opts, env) do
     Keyword.get(opts, env, nil)
   end
+
+  def convert_ip(payload) do
+    string_list = String.split(payload, ", ")
+
+    integer_list = Enum.map(string_list, &String.to_integer/1)
+
+    tuple = List.to_tuple(integer_list)
+
+    IO.inspect(tuple)
+  end
 end

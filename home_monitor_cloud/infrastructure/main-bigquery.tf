@@ -8,9 +8,19 @@ module "bigquery" {
     schema              = <<EOF
     [
       {
-        "name": "temperature",
-        "type": "FLOAT",
-        "description": "Temperature in degrees celsius"
+        "name": "payload",
+        "type": "STRING",
+        "description": "Raw rayload data"
+      },
+      {
+        "name": "topic",
+        "type": "STRING",
+        "description": "The topic the message originated from"
+      },
+      {
+        "name": "type",
+        "type": "STRING",
+        "description": "The type of data this message represents"
       },
       {
         "name": "client_id",
@@ -20,7 +30,7 @@ module "bigquery" {
       {
         "name": "timestamp",
         "type": "TIMESTAMP",
-        "description": "The timestamp at which the temperature was recorded on the device"
+        "description": "The timestamp at which the data was recorded on the device"
       }
     ]
     EOF

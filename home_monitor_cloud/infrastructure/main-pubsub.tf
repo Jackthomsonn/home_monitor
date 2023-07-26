@@ -8,8 +8,16 @@ module "state-pubsub" {
     {
       fields = [
         {
-          name = "temperature"
-          type = "float"
+          name = "payload"
+          type = "string"
+        },
+        {
+          name = "topic"
+          type = "string"
+        },
+        {
+          name = "type"
+          type = "string"
         },
         {
           name = "client_id"

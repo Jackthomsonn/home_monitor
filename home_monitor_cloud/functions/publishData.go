@@ -9,9 +9,11 @@ import (
 )
 
 type Data struct {
-	Temperature *float32 `json:"temperature"`
-	ClientId    *string  `json:"client_id"`
-	Timestamp   *string  `json:"timestamp"`
+	Payload   *string `json:"payload"`
+	Topic     *string `json:"topic"`
+	Type      *string `json:"type"`
+	ClientId  *string `json:"client_id"`
+	Timestamp *string `json:"timestamp"`
 }
 
 type ResponseType struct {

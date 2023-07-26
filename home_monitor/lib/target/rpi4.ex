@@ -18,11 +18,7 @@ defmodule HomeMonitor.Target.Rpi4 do
     end
   end
 
-  def turn_on(device_id) do
-    HomeMonitor.Tp.TpProc.turn_on(device_id)
-  end
-
-  def turn_off(device_id) do
-    HomeMonitor.Tp.TpProc.turn_off(device_id)
+  def send_command(action, ip, device_type) do
+    HomeMonitor.Tp.TpProc.send_command(action, ip, device_type)
   end
 end
