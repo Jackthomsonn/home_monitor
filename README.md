@@ -1,7 +1,8 @@
 ![diagram](https://user-images.githubusercontent.com/11717131/210117086-a79049fe-e4d5-47b3-87d0-021cf94efb21.png)
 
 
-![Home Monitor Diagram](https://user-images.githubusercontent.com/11717131/222989343-6fd65048-555e-48a3-893b-fb8b762a5a21.jpeg)
+![Home Monitor](https://github.com/Jackthomsonn/home_monitor/assets/11717131/c9e83460-b6bf-4cf7-bddf-4950d6be533c)
+
 
 ## Technologies / services used
 
