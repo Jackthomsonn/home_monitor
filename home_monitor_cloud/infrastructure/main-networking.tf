@@ -47,5 +47,5 @@ resource "google_compute_firewall" "emqx_tcp" {
     ports    = ["1883"]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = [data.sops_file.secrets.data["ip_address"]]
 }
