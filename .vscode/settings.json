@@ -12,4 +12,5 @@
     "editor.defaultFormatter": "JakeBecker.elixir-ls",
   },
   "elixirLS.projectDir": "home_monitor/",
+  "editor.detectIndentation": false
 }
