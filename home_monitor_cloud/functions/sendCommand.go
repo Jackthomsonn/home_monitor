@@ -47,7 +47,9 @@ func SendCommand(w http.ResponseWriter, r *http.Request) {
 
 	c := mqtt.NewClient(opts)
 	if token := c.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.Error{Message: token.Error().Error()})
+		return
 	}
 
 	defer c.Disconnect(250)

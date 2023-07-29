@@ -20,7 +20,9 @@ type DiscoveryRequest struct {
 func DiscoverDevices(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	if err := utils.CheckApiKey(r.Header.Get("api_key")); err != nil {
+	api_key := r.Header.Get("api_key")
+
+	if err := utils.CheckApiKey(api_key); err != nil {
 		utils.Logger().Error("Error checking API key", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
 		w.WriteHeader(http.StatusUnauthorized)
 		return

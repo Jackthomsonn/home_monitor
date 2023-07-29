@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func GetSecret(secret_name string, ctx context.Context) (response string, error error) {
+func GetSecret(secret_name string, ctx context.Context) (string, error) {
 	Logger().Info("Getting secret", zapcore.Field{Key: "secret_name", Type: zapcore.StringType, String: secret_name}, zapcore.Field{Key: "ctx", Type: zapcore.ReflectType, Interface: ctx})
 
 	secret_manager_client, err := secretmanager.NewClient(ctx)
