@@ -24,7 +24,7 @@ func DiscoverDevices(w http.ResponseWriter, r *http.Request) {
 
 	if err := utils.CheckApiKey(api_key); err != nil {
 		utils.Logger().Error("Error checking API key", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
-		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Error checking API key"))
 		return
 	}
 

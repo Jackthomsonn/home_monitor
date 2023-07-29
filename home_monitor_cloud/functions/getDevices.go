@@ -12,10 +12,14 @@ import (
 
 func GetDevices(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 
-	if err := utils.CheckApiKey(r.Header.Get("api_key")); err != nil {
+	api_key := r.Header.Get("api_key")
+
+	if err := utils.CheckApiKey(api_key); err != nil {
 		utils.Logger().Error("Error checking API key", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
-		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Error checking API key"))
 		return
 	}
 

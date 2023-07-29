@@ -60,7 +60,8 @@ defmodule HomeMonitor.Tp.TpProc do
       "alias" => Map.get(device.system_info, "alias"),
       "feature" => Map.get(device.system_info, "feature"),
       "on_time" => Map.get(device.system_info, "on_time"),
-      "device_id" => Map.get(device.system_info, "device_id")
+      "device_id" => Map.get(device.system_info, "device_id"),
+      "relay_state" => Map.get(device.system_info, "relay_state")
     }
   end
 
@@ -68,12 +69,16 @@ defmodule HomeMonitor.Tp.TpProc do
     TpLink.local_device(device_ip)
     |> TpLink.Type.Plug.set_relay_state(true)
 
+    discover()
+
     Logger.info("TpProc: Turned on plug")
   end
 
   def handle_plug_action("turn_off", device_ip) do
     TpLink.local_device(device_ip)
     |> TpLink.Type.Plug.set_relay_state(false)
+
+    discover()
 
     Logger.info("TpProc: Turned off plug")
   end

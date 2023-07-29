@@ -1,14 +1,17 @@
-import { cn } from "@/lib/utils";
 import { Switch } from "@radix-ui/react-switch";
 import { Power } from "lucide-react";
 import { PropsWithChildren } from "react";
-import { AddDeviceDialog } from "../addDeviceDialog/addDeviceDialog";
+import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 
 export type Device = {
-  name: string;
-  description: string;
-  status: boolean;
+  A: number;
+  K: string;
+  ip: string[];
+  alias: string;
+  feature: string;
+  on_time: number;
+  device_id: string;
 };
 
 export type DeviceCardProps = {
@@ -27,16 +30,16 @@ export const DeviceCard = ({ devices }: PropsWithChildren<DeviceCardProps>) => (
           <div className=" flex items-center space-x-4 rounded-md border p-4">
             <Power />
             <div className="flex-1 space-y-1">
-              <p className="text-sm font-medium leading-none">{device.name}</p>
-              <p className="text-sm text-muted-foreground">{device.description}</p>
+              <p className="text-sm font-medium leading-none">{device.alias}</p>
+              <p className="text-sm text-muted-foreground">{device.feature}</p>
             </div>
-            <Switch checked={device.status} />
+            <Switch checked={true} />
           </div>
         );
       })}
     </CardContent>
     <CardFooter className="w-full">
-      <AddDeviceDialog />
+      <Button className="w-full">Refresh list</Button>
     </CardFooter>
   </Card>
 );

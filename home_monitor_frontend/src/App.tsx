@@ -4,11 +4,14 @@ import z from "zod";
 import "./App.css";
 import { Device, DeviceCard } from "./components/deviceCard/DeviceCard";
 import { EnergyConsumptionCard } from "./components/energyConsumptionCard/EnergyConsumptionCard";
+import { useEffect, useState } from "react";
 
 function App() {
   const formSchema = z.object({
     device_name: z.string(),
   });
+
+  const [devices, setDevices] = useState<Device[]>([]);
 
   useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -17,23 +20,20 @@ function App() {
     },
   });
 
-  const devices: Device[] = [
-    {
-      name: "Living room light",
-      description: "Lightbulb ",
-      status: false,
-    },
-    {
-      name: "Bedroom light",
-      description: "Lightbulb ",
-      status: true,
-    },
-    {
-      name: "Kitchen light",
-      description: "Lightbulb ",
-      status: true,
-    },
-  ];
+  useEffect(() => {
+    const getDevices = async () => {
+      const response = await fetch("http://localhost:8080/getDevices", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          api_key: "0267dddec74ba4a3819ab89342feb108507cb8a67a3e8dc99c992c1058cec74d",
+        },
+      });
+      const data = await response.json();
+      setDevices(data);
+    };
+    getDevices();
+  }, []);
 
   const data = [
     {
