@@ -8,3 +8,5 @@ home_monitor_cloud/functions/dist
 home_monitor/config/target.exs
 Deploy.md
 **/node_modules
+home_monitor_cloud/functions/sendCommand.go
+home_monitor_cloud/secrets/.decrypted~secrets.yaml

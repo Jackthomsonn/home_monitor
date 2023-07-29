@@ -143,3 +143,22 @@ resource "google_project_iam_member" "get_devices_service_account_member_roles" 
   role   = each.key
   member = "serviceAccount:${google_service_account.get_devices_service_account.email}"
 }
+
+###############################################################################################
+
+#### Send Command service account
+resource "google_service_account" "send_command_service_account" {
+  account_id   = "send-command-iam-sa"
+  project      = var.project
+  display_name = "Send Command Service Account used for the Send Command function"
+}
+
+resource "google_project_iam_member" "send_command_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/secretmanager.secretAccessor",
+    "roles/datastore.owner"
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.send_command_service_account.email}"
+}

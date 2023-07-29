@@ -6,6 +6,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"jackthomson.com/functions/models"
+	"jackthomson.com/functions/utils"
 )
 
 type Command struct {
@@ -21,7 +22,15 @@ type CommandRequest struct {
 }
 
 func SendCommand(w http.ResponseWriter, r *http.Request) {
-	opts := mqtt.NewClientOptions().AddBroker("35.187.59.21:1883")
+	host, err := utils.GetSecret("projects/345305797254/secrets/emqx_host/versions/latest", r.Context())
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
+		return
+	}
+
+	opts := mqtt.NewClientOptions().AddBroker(host)
 
 	var command_request CommandRequest
 	decoder := json.NewDecoder(r.Body)
