@@ -39,6 +39,8 @@ defmodule HomeMonitor.Tp.TpProc do
   end
 
   def discover() do
+    Logger.info("TpProc: Discovering devices...")
+
     with {:ok, devices} <- TpLink.Local.list_devices() do
       HomeMonitor.Mqtt.MqttProc.publish("devices", %{
         "devices" => Enum.map(devices, fn device -> build_device_payload(device) end)
