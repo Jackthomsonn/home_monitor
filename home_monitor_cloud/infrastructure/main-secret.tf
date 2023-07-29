@@ -61,3 +61,24 @@ resource "google_secret_manager_secret_version" "emqx_host_version" {
     google_secret_manager_secret.emqx_host
   ]
 }
+
+resource "google_secret_manager_secret" "api_key" {
+  secret_id = "api_key"
+  project   = var.project
+
+  replication {
+    automatic = true
+  }
+
+  depends_on = [
+    module.project_services
+  ]
+}
+resource "google_secret_manager_secret_version" "api_key_version" {
+  secret      = google_secret_manager_secret.api_key.id
+  secret_data = data.sops_file.secrets.data["api_key"]
+
+  depends_on = [
+    google_secret_manager_secret.api_key
+  ]
+}
