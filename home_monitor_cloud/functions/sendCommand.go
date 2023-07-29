@@ -13,12 +13,14 @@ type Command struct {
 	DeviceIP   string `json:"device_ip"`
 	Action     string `json:"action"`
 	DeviceType string `json:"device_type"`
+	DeviceID   string `json:"device_id"`
 }
 
 type CommandRequest struct {
 	Action     string `json:"action"`
 	DeviceIP   string `json:"device_ip"`
 	DeviceType string `json:"device_type"`
+	DeviceID   string `json:"device_id"`
 }
 
 func SendCommand(w http.ResponseWriter, r *http.Request) {
@@ -50,13 +52,15 @@ func SendCommand(w http.ResponseWriter, r *http.Request) {
 
 	defer c.Disconnect(250)
 
-	command := Command{DeviceIP: command_request.DeviceIP, Action: command_request.Action, DeviceType: command_request.DeviceType}
+	command := Command{DeviceIP: command_request.DeviceIP, Action: command_request.Action, DeviceType: command_request.DeviceType, DeviceID: command_request.DeviceID}
 	jsonCommand, err := json.Marshal(command)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
 		return
 	}
-	token := c.Publish("commands/host/test", 0, false, jsonCommand)
+
+	topic := "commands/" + command_request.DeviceID + "/ping"
+	token := c.Publish(topic, 0, false, jsonCommand)
 	token.Wait()
 }
