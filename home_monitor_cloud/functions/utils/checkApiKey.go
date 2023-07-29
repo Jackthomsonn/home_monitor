@@ -13,6 +13,8 @@ func CheckApiKey(api_key string) error {
 	}
 
 	if api_key != secret_api_key {
-		return errors.New("Invalid API key")
+		return errors.New("API key is invalid")
 	}
+
+	return nil
 }
