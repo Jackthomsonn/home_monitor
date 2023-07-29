@@ -54,10 +54,13 @@ defmodule HomeMonitor.Mqtt.MqttProc do
 
   # Handle receiving data
   def handle_info({:publish, packet}, state) do
-    with {:ok, %{"action" => action, "device_ip" => device_ip, "device_type" => device_type}} <-
-           JSON.decode(packet.payload) do
-      hal_system().send_command(action, Delegate.convert_ip(device_ip), device_type)
-    else
+    case JSON.decode(packet.payload) do
+      {:ok, %{"action" => "discover"}} ->
+        hal_system().send_command("discover")
+
+      {:ok, %{"action" => action, "device_ip" => device_ip, "device_type" => device_type}} ->
+        hal_system().send_command(action, Delegate.convert_ip(device_ip), device_type)
+
       {:error, reason} ->
         Logger.error("MqttProc: Failed to decode payload: #{inspect(reason)}")
     end
@@ -75,7 +78,9 @@ defmodule HomeMonitor.Mqtt.MqttProc do
         |> DateTime.to_iso8601()
       )
 
-    payload = JSON.encode!(payload)
+    payload =
+      JSON.encode!(payload)
+      |> IO.inspect()
 
     case :emqtt.publish(state.pid, "reports/#{state.emqtt_opts[:clientid]}/#{topic}", payload) do
       :ok ->

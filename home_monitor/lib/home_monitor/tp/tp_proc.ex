@@ -28,6 +28,40 @@ defmodule HomeMonitor.Tp.TpProc do
     end
   end
 
+  def send_command(action) do
+    case action do
+      "discover" ->
+        discover()
+
+      _ ->
+        Logger.error("TpProc: Unknown action: #{inspect(action)}")
+    end
+  end
+
+  def discover() do
+    with {:ok, devices} <- TpLink.Local.list_devices() do
+      HomeMonitor.Mqtt.MqttProc.publish("devices", %{
+        "devices" => Enum.map(devices, fn device -> build_device_payload(device) end)
+      })
+    else
+      {:error, reason} ->
+        Logger.error("TpProc: Failed to list devices: #{inspect(reason)}")
+
+      _ ->
+        Logger.error("TpProc: Unknown error")
+    end
+  end
+
+  def build_device_payload(device) do
+    %{
+      "ip" => device.ip,
+      "alias" => Map.get(device.system_info, "alias"),
+      "feature" => Map.get(device.system_info, "feature"),
+      "on_time" => Map.get(device.system_info, "on_time"),
+      "device_id" => Map.get(device.system_info, "device_id")
+    }
+  end
+
   def handle_plug_action("turn_on", device_ip) do
     TpLink.local_device(device_ip)
     |> TpLink.Type.Plug.set_relay_state(true)

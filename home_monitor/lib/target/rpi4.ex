@@ -21,4 +21,8 @@ defmodule HomeMonitor.Target.Rpi4 do
   def send_command(action, ip, device_type) do
     HomeMonitor.Tp.TpProc.send_command(action, ip, device_type)
   end
+
+  def send_command(action) do
+    HomeMonitor.Tp.TpProc.send_command(action)
+  end
 end

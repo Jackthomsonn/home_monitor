@@ -10,4 +10,8 @@ defmodule HomeMonitor.Target.Host do
   def send_command(action, ip, device_type) do
     HomeMonitor.Tp.TpProc.send_command(action, ip, device_type)
   end
+
+  def send_command(action) do
+    HomeMonitor.Tp.TpProc.send_command(action)
+  end
 end

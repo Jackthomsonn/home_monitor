@@ -8,6 +8,16 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+type DataStoreDevice struct {
+	A        int
+	K        *datastore.Key `datastore:"__key__"`
+	Ip       []int          `json:"ip"`
+	Alias    string         `json:"alias"`
+	Feature  string         `json:"feature"`
+	OnTime   int            `json:"on_time"`
+	DeviceId string         `json:"device_id"`
+}
+
 func WriteToDatastore(name_key *datastore.Key, data interface{}) (datastore.Key, error) {
 	Logger().Info("Writing to datastore", zap.Field{Key: "name_key", Type: zapcore.ReflectType, Interface: name_key}, zap.Field{Key: "data", Type: zapcore.ReflectType, Interface: data})
 
@@ -44,4 +54,26 @@ func ReadFromDatastore(nameKey *datastore.Key, dest interface{}) error {
 	}
 
 	return nil
+}
+
+func ReadAllFromDataStore() ([]DataStoreDevice, error) {
+	Logger().Info("Reading all from datastore")
+
+	client, err := datastore.NewClient(context.Background(), "home-monitor-373013")
+
+	if err != nil {
+		Logger().Error("Error creating datastore client", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
+		return nil, err
+	}
+
+	var entities []DataStoreDevice
+
+	_, err = client.GetAll(context.Background(), datastore.NewQuery("Device"), &entities)
+
+	if err != nil {
+		Logger().Error("Error getting data from datastore", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
+		return nil, err
+	}
+
+	return entities, nil
 }

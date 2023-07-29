@@ -72,3 +72,12 @@ jobs:
       - name: Deploy TriggerConsumptionData function
         if: steps.functions-have-changed.outputs.any_changed == 'true'
         run: cd home_monitor_cloud/functions && gcloud functions deploy TriggerConsumptionData --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --project home-monitor-373013
+      - name: Deploy DiscoverDevices function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy DiscoverDevices --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account discover-devices-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
+      - name: Deploy GetDevices function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy GetDevices --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account get-devices-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
+      - name: Deploy SendCommand function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy SendCommand --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account send-command-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013

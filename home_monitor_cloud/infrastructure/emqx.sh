@@ -33,6 +33,27 @@ curl -X POST '<url>/api/v5/bridges' \
   "url": "<url>"
 }'
 
+curl -X POST '<url>/api/v5/bridges' \
+     -u ${api_key}:${api_secret} \
+     -H "Content-Type: application/json" \
+     -d '{
+ "body": "{\"devices\": ${devices}, \"timestamp\": \"${timestamp}\"}",
+ "connect_timeout": "10s",
+  "enable": true,
+  "enable_pipelining": 100,
+  "max_retries": 5,
+  "method": "post",
+  "name": "discover_devices",
+  "pool_size": 4,
+  "pool_type": "random",
+  "request_timeout": "10s",
+  "ssl": {
+    "enable": false
+  },
+  "type": "webhook",
+  "url": "<url>"
+}'
+
 
 curl -X POST '<url>/api/v5/rules' \
      -u ${api_key}:${api_secret} \
@@ -51,6 +72,21 @@ curl -X POST '<url>/api/v5/rules' \
        FROM \"reports/+/energy\"",
   "actions": [
     "webhook:energy_data_publisher"
+  ],
+  "enable": true,
+  "metadata": {}
+}'
+
+curl -X POST '<url>/api/v5/rules' \
+     -u ${api_key}:${api_secret} \
+     -H "Content-Type: application/json" \
+     -d '{
+  "name": "discover_devices",
+  "sql": "SELECT payload.devices as devices,
+       payload.timestamp as timestamp
+       FROM \"reports/+/devices\"",
+  "actions": [
+    "webhook:discover_devices"
   ],
   "enable": true,
   "metadata": {}

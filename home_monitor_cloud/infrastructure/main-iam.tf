@@ -47,18 +47,7 @@ resource "google_project_iam_member" "editor" {
   ]
 }
 
-resource "google_project_iam_member" "ingest_home_totals_service_account_member_roles" {
-  project = var.project
-  for_each = toset([
-    "roles/bigquery.dataViewer",
-    "roles/secretmanager.secretAccessor",
-    "roles/bigquery.jobUser",
-    "roles/datastore.owner"
-  ])
-  role   = each.key
-  member = "serviceAccount:${google_service_account.ingest_home_totals_service_account.email}"
-}
-
+###############################################################################################
 
 ##### Ingest data service account
 resource "google_service_account" "ingest_data_iam_service_account" {
@@ -77,6 +66,8 @@ resource "google_project_iam_member" "ingest_data_iam_service_account_member_rol
   member = "serviceAccount:${google_service_account.ingest_data_iam_service_account.email}"
 }
 
+###############################################################################################
+
 #### Get totals for home service account
 resource "google_service_account" "get_totals_for_home_service_account" {
   account_id   = "get-totals-for-home-iam-sa"
@@ -94,9 +85,61 @@ resource "google_project_iam_member" "get_totals_for_home_service_account_member
   member = "serviceAccount:${google_service_account.get_totals_for_home_service_account.email}"
 }
 
+###############################################################################################
+
 #### Ingest home totals service account
 resource "google_service_account" "ingest_home_totals_service_account" {
   account_id   = "ingest-home-totals-iam-sa"
   project      = var.project
   display_name = "Ingest Home Totals Service Account used for the Ingest Home Totals function"
+}
+
+resource "google_project_iam_member" "ingest_home_totals_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/bigquery.dataViewer",
+    "roles/secretmanager.secretAccessor",
+    "roles/bigquery.jobUser",
+    "roles/datastore.owner"
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.ingest_home_totals_service_account.email}"
+}
+
+###############################################################################################
+
+#### Discover Devices service account
+resource "google_service_account" "discover_devices_service_account" {
+  account_id   = "discover-devices-iam-sa"
+  project      = var.project
+  display_name = "Discover Devices Service Account used for the Discover Devices function"
+}
+
+resource "google_project_iam_member" "discover_devices_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/secretmanager.secretAccessor",
+    "roles/datastore.owner"
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.discover_devices_service_account.email}"
+}
+
+###############################################################################################
+
+#### Get Devices service account
+resource "google_service_account" "get_devices_service_account" {
+  account_id   = "get-devices-iam-sa"
+  project      = var.project
+  display_name = "Get Devices Service Account used for the Get Devices function"
+}
+
+resource "google_project_iam_member" "get_devices_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/secretmanager.secretAccessor",
+    "roles/datastore.owner"
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.get_devices_service_account.email}"
 }
