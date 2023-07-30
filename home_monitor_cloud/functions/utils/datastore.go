@@ -9,13 +9,15 @@ import (
 )
 
 type DataStoreDevice struct {
-	A        int
-	K        *datastore.Key `datastore:"__key__"`
-	Ip       []int          `json:"ip"`
-	Alias    string         `json:"alias"`
-	Feature  string         `json:"feature"`
-	OnTime   int            `json:"on_time"`
-	DeviceId string         `json:"device_id"`
+	A          int
+	K          *datastore.Key `datastore:"__key__"`
+	Ip         []int          `json:"ip"`
+	Alias      string         `json:"alias"`
+	Feature    string         `json:"feature"`
+	OnTime     int            `json:"on_time"`
+	RelayState int            `json:"relay_state"`
+	DeviceId   string         `json:"device_id"`
+	DeviceType string         `json:"device_type"`
 }
 
 func WriteToDatastore(name_key *datastore.Key, data interface{}) (datastore.Key, error) {

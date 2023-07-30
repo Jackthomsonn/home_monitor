@@ -61,7 +61,8 @@ defmodule HomeMonitor.Tp.TpProc do
       "feature" => Map.get(device.system_info, "feature"),
       "on_time" => Map.get(device.system_info, "on_time"),
       "device_id" => Map.get(device.system_info, "device_id"),
-      "relay_state" => Map.get(device.system_info, "relay_state")
+      "relay_state" => Map.get(device.system_info, "relay_state"),
+      "device_type" => Map.get(device.system_info, "mic_type")
     }
   end
 

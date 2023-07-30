@@ -15,6 +15,7 @@ import (
 type DiscoveryRequest struct {
 	Devices   []models.Device `json:"devices"`
 	Timestamp string          `json:"timestamp"`
+	ClientID  string          `json:"client_id"`
 }
 
 func DiscoverDevices(w http.ResponseWriter, r *http.Request) {

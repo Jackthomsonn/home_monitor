@@ -6,5 +6,6 @@ type Device struct {
 	Feature    string `json:"feature"`
 	OnTime     int    `json:"on_time"`
 	DeviceId   string `json:"device_id"`
-	RelayState bool   `json:"relay_state"`
+	RelayState int    `json:"relay_state"`
+	DeviceType string `json:"device_type"`
 }

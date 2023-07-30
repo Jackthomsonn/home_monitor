@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"jackthomson.com/functions/models"
 	"jackthomson.com/functions/utils"
 )
@@ -24,6 +26,18 @@ type CommandRequest struct {
 }
 
 func SendCommand(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+
+	api_key := r.Header.Get("api_key")
+
+	if err := utils.CheckApiKey(api_key); err != nil {
+		utils.Logger().Error("Error checking API key", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
+		w.Write([]byte("Error checking API key"))
+		return
+	}
+
 	host, err := utils.GetSecret("projects/345305797254/secrets/emqx_host/versions/latest", r.Context())
 
 	if err != nil {
