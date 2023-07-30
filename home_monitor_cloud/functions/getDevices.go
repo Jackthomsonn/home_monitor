@@ -29,7 +29,7 @@ func GetDevices(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
 
-	var originToUse string = "https://home-monitor.vercel.app/"
+	var originToUse string = "https://home-monitor.vercel.app"
 
 	if os.Getenv("DEVELOPMENT_MODE") == "true" {
 		originToUse = "http://localhost:5173"
