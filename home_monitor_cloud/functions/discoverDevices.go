@@ -18,6 +18,17 @@ type DiscoveryRequest struct {
 	ClientID  string          `json:"client_id"`
 }
 
+type DiscoveryDataStore struct {
+	Ip         []int  `json:"ip"`
+	Alias      string `json:"alias"`
+	Feature    string `json:"feature"`
+	OnTime     int    `json:"on_time"`
+	DeviceId   string `json:"device_id"`
+	RelayState int    `json:"relay_state"`
+	DeviceType string `json:"device_type"`
+	ClientID   string `json:"client_id"`
+}
+
 func DiscoverDevices(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -56,8 +67,18 @@ func DiscoverDevices(w http.ResponseWriter, r *http.Request) {
 
 	for _, device := range data.Devices {
 		key := datastore.NameKey("Device", device.DeviceId, nil)
-		_, err := utils.WriteToDatastore(key, &device)
+		_, err := utils.WriteToDatastore(key, &DiscoveryDataStore{
+			Alias:      device.Alias,
+			Ip:         device.Ip,
+			Feature:    device.Feature,
+			OnTime:     device.OnTime,
+			DeviceId:   device.DeviceId,
+			RelayState: device.RelayState,
+			DeviceType: device.DeviceType,
+			ClientID:   data.ClientID,
+		})
 		if err != nil {
+			println(err.Error())
 			utils.Logger().Error("Error writing to datastore", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
 			w.WriteHeader(http.StatusInternalServerError)
 			return

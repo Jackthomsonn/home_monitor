@@ -1,9 +1,10 @@
 import { Switch } from "@radix-ui/react-switch";
-import { Power } from "lucide-react";
+import { Loader2, Power } from "lucide-react";
 import { PropsWithChildren } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import useSWRMutation from "swr/mutation";
+import useSWR from "swr";
 
 export type Device = {
   A: number;
@@ -15,20 +16,23 @@ export type Device = {
   device_id: string;
   relay_state: number;
   client_id: string;
+  device_type: string;
+} & { action: string };
+
+export type DeviceCardProps = {};
+
+const convertDeviceType = (device_type: string) => {
+  if (device_type === "IOT.SMARTPLUGSWITCH") return "plug";
 };
 
-export type DeviceCardProps = {
-  devices?: Device[] | undefined;
-};
-
-async function sendCommand(url: string, { arg }: { arg: Device }) {
-  await fetch(url, {
+async function sendCommand(_key: string, { arg }: { arg: Device }) {
+  await fetch("https://europe-west1-home-monitor-373013.cloudfunctions.net/SendCommand", {
     method: "POST",
     body: JSON.stringify({
-      action: "turn_on",
+      action: arg.relay_state === 1 ? "turn_off" : "turn_on",
       device_ip: arg.ip.join(", "),
       device_id: arg.client_id,
-      device_type: "plug",
+      device_type: convertDeviceType(arg.device_type),
     }),
     headers: {
       api_key: import.meta.env.VITE_API_KEY,
@@ -36,10 +40,52 @@ async function sendCommand(url: string, { arg }: { arg: Device }) {
   });
 }
 
-export const DeviceCard = ({ devices }: PropsWithChildren<DeviceCardProps>) => {
-  const { trigger } = useSWRMutation(
-    "https://europe-west1-home-monitor-373013.cloudfunctions.net/SendCommand",
-    sendCommand,
+async function discoverDevices(_key: string, { arg }: { arg: Device }) {
+  await fetch("https://europe-west1-home-monitor-373013.cloudfunctions.net/SendCommand", {
+    method: "POST",
+    body: JSON.stringify({
+      action: "discover",
+      device_id: arg.client_id,
+    }),
+    headers: {
+      api_key: import.meta.env.VITE_API_KEY,
+    },
+  });
+}
+
+const getDevices = async () => {
+  const data = await fetch("https://europe-west1-home-monitor-373013.cloudfunctions.net/GetDevices", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      api_key: import.meta.env.VITE_API_KEY,
+    },
+  });
+
+  return data.json();
+};
+
+export const DeviceCard = (_props: PropsWithChildren<DeviceCardProps>) => {
+  const { data: devices } = useSWR<Device[]>("devices", getDevices);
+
+  const { trigger: sendCommandTrigger, isMutating: sendCommandIsMutating } = useSWRMutation("devices", sendCommand, {
+    optimisticData: (arg: Device[]) => {
+      return devices?.map((device, index) => {
+        if (device.client_id === arg[index].client_id) {
+          return {
+            ...device,
+            relay_state: device.relay_state === 1 ? 0 : 1,
+          };
+        }
+      });
+    },
+    revalidate: false,
+  });
+
+  const { trigger: discoverDevicesTrigger, isMutating: discoverDevicesIsMutating } = useSWRMutation(
+    "devices",
+    discoverDevices,
+    { revalidate: false },
   );
 
   return (
@@ -58,14 +104,27 @@ export const DeviceCard = ({ devices }: PropsWithChildren<DeviceCardProps>) => {
                 <p className="text-sm font-medium leading-none">{device.alias}</p>
                 <p className="text-sm text-muted-foreground">{device.feature}</p>
               </div>
-              <Button onClick={() => trigger(device)}>Toggle</Button>
-              <Switch checked={Boolean(device.relay_state)} />
+              <Button onClick={() => sendCommandTrigger(device)}>
+                {sendCommandIsMutating && <Loader2 className="animate-spin mr-2" />}
+                {device.relay_state === 1 ? "Turn off" : "Turn on"}
+              </Button>
             </div>
           );
         })}
       </CardContent>
       <CardFooter className="w-full">
-        <Button className="w-full">Refresh list</Button>
+        {devices && devices?.length > 0 && (
+          <Button
+            className="w-full"
+            onClick={async () => {
+              await discoverDevicesTrigger({ client_id: devices[0].client_id, action: "discover" } as Device);
+              window.location.reload();
+            }}
+          >
+            {discoverDevicesIsMutating && <Loader2 className="animate-spin mr-2" />}
+            Refresh list
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
