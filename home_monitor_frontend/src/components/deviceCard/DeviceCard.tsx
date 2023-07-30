@@ -1,10 +1,9 @@
-import { Switch } from "@radix-ui/react-switch";
 import { Loader2, Power } from "lucide-react";
 import { PropsWithChildren } from "react";
+import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
-import useSWRMutation from "swr/mutation";
-import useSWR from "swr";
 
 export type Device = {
   A: number;
