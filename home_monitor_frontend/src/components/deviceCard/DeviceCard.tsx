@@ -31,7 +31,7 @@ async function sendCommand(url: string, { arg }: { arg: Device }) {
       device_type: "plug",
     }),
     headers: {
-      api_key: process.env.API_KEY as string,
+      api_key: import.meta.env.VITE_API_KEY,
     },
   });
 }

@@ -12,7 +12,7 @@ const fetcher = async (...args: string[]) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      api_key: process.env.API_KEY as string,
+      api_key: import.meta.env.VITE_API_KEY,
     },
   });
 
