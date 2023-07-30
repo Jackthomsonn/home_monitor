@@ -1,13 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, LogOut } from "lucide-react";
+import { Magic } from "magic-sdk";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import "./App.css";
 import { DeviceCard } from "./components/deviceCard/DeviceCard";
 import { EnergyConsumptionCard } from "./components/energyConsumptionCard/EnergyConsumptionCard";
-import { Magic } from "magic-sdk";
-import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
-import { Loader2, LogOut } from "lucide-react";
 import { Input } from "./components/ui/input";
 
 function App() {
