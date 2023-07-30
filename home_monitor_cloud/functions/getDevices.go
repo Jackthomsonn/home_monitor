@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"cloud.google.com/go/datastore"
 	"go.uber.org/zap"
@@ -26,8 +27,15 @@ type Device struct {
 
 func GetDevices(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
+
+	var originToUse string = "https://home-monitor.vercel.app/"
+
+	if os.Getenv("DEVELOPMENT_MODE") == "true" {
+		originToUse = "http://localhost:5173"
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", originToUse)
 
 	api_key := r.Header.Get("api_key")
 
