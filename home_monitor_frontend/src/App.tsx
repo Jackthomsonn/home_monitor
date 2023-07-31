@@ -26,8 +26,6 @@ function App() {
     },
   });
 
-  console.log(import.meta.env);
-
   const magic = new Magic(import.meta.env.VITE_MAGIC_API_KEY, {
     network: "mainnet",
   });
@@ -76,13 +74,14 @@ function App() {
                 fill="white"
               />
             </svg>
-            <Button className="mr-4">
-              <LogOut
-                onClick={async () => {
-                  await magic.user.logout();
-                  setIsLoggedIn(false);
-                }}
-              />
+            <Button
+              className="mr-4"
+              onClick={async () => {
+                await magic.user.logout();
+                setIsLoggedIn(false);
+              }}
+            >
+              <LogOut />
               <span className="ml-2">Logout</span>
             </Button>
           </div>

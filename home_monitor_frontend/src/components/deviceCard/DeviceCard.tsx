@@ -78,6 +78,7 @@ export const DeviceCard = (_props: PropsWithChildren<DeviceCardProps>) => {
         }
       });
     },
+    rollbackOnError: true,
     revalidate: false,
   });
 
