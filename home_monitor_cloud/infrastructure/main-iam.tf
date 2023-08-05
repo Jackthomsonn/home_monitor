@@ -100,7 +100,7 @@ resource "google_project_iam_member" "ingest_home_totals_service_account_member_
     "roles/bigquery.dataViewer",
     "roles/secretmanager.secretAccessor",
     "roles/bigquery.jobUser",
-    "roles/datastore.owner"
+    "roles/datastore.user"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.ingest_home_totals_service_account.email}"
@@ -119,7 +119,7 @@ resource "google_project_iam_member" "discover_devices_service_account_member_ro
   project = var.project
   for_each = toset([
     "roles/secretmanager.secretAccessor",
-    "roles/datastore.owner"
+    "roles/datastore.user"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.discover_devices_service_account.email}"
@@ -138,7 +138,7 @@ resource "google_project_iam_member" "get_devices_service_account_member_roles" 
   project = var.project
   for_each = toset([
     "roles/secretmanager.secretAccessor",
-    "roles/datastore.owner"
+    "roles/datastore.user"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.get_devices_service_account.email}"
@@ -157,7 +157,7 @@ resource "google_project_iam_member" "send_command_service_account_member_roles"
   project = var.project
   for_each = toset([
     "roles/secretmanager.secretAccessor",
-    "roles/datastore.owner"
+    "roles/datastore.user"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.send_command_service_account.email}"
