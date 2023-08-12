@@ -18,14 +18,9 @@ func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
 	utils.Logger().Info("IngestConsumptionData", zap.Field{Key: "method", Type: zapcore.StringType, String: r.Method}, zap.Field{Key: "url", Type: zapcore.StringType, String: r.URL.String()})
 	w.Header().Set("Content-Type", "application/json")
 
-	config, err := config.ReadConfig()
+	config := config.GetConfig()
 
-	if err != nil {
-		utils.Logger().Error("Error reading config", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
-		return
-	}
+	utils.Logger().Info("Using strategy", zap.Field{Key: "strategy", Type: zapcore.StringType, String: config.StrategyToUse})
 
 	response, err := strategies.StrategyFactory(config.StrategyToUse)
 
