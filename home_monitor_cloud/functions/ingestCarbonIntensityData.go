@@ -3,6 +3,8 @@ package functions
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -28,7 +30,7 @@ func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
 	now := utc.Format(time.RFC3339)
 	previousDay := utc.AddDate(0, 0, -1).Format(time.RFC3339)
 
-	data, err := services.GetCarbonIntensity(w, previousDay, now)
+	data, err := getCarbonIntensity(w, previousDay, now)
 
 	if err != nil {
 		utils.Logger().Error("Error getting carbon intensity data", zap.Error(err))
@@ -47,7 +49,7 @@ func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	if err = utils.InsertDataIntoBiqQuery(context.Background(), ingestionValues, "home_monitor_carbon_intensity"); err != nil {
+	if err = services.InsertDataIntoBiqQuery(context.Background(), ingestionValues, "home_monitor_carbon_intensity"); err != nil {
 		utils.Logger().Error("Error inserting carbon intensity data", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(models.Error{Message: err.Error()})
@@ -58,4 +60,35 @@ func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(ingestionValues)
+}
+
+func getCarbonIntensity(w http.ResponseWriter, previousDay string, now string) (models.CarbonintensityResponse, error) {
+	utils.Logger().Info("GetCarbonIntensity", zap.Field{Key: "now", Type: zapcore.StringType, String: previousDay}, zap.Field{Key: "now", Type: zapcore.StringType, String: now})
+	result, err := http.Get(fmt.Sprintf("https://api.carbonintensity.org.uk/intensity/%s/%s", previousDay, now))
+
+	if err != nil {
+		utils.Logger().Error("Error getting carbon intensity", zap.Error(err))
+		return models.CarbonintensityResponse{Data: nil}, err
+	}
+
+	defer result.Body.Close()
+
+	body, err := io.ReadAll(result.Body)
+
+	if err != nil {
+		utils.Logger().Error("Error reading carbon intensity response", zap.Error(err))
+		return models.CarbonintensityResponse{Data: nil}, err
+	}
+
+	var data models.CarbonintensityResponse
+
+	err = json.Unmarshal(body, &data)
+
+	if err != nil {
+		utils.Logger().Error("Error unmarshalling carbon intensity response", zap.Error(err))
+		return models.CarbonintensityResponse{Data: nil}, err
+	}
+
+	utils.Logger().Info("Successfully got carbon intensity")
+	return data, nil
 }

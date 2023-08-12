@@ -18,6 +18,7 @@ func main() {
 	http.HandleFunc("/sendCommand", functions.SendCommand)
 	http.HandleFunc("/discoverDevices", functions.DiscoverDevices)
 	http.HandleFunc("/getDevices", functions.GetDevices)
+	http.HandleFunc("/getEnergyConsumption", functions.GetEnergyConsumption)
 
 	port := os.Getenv("PORT")
 	if port == "" {

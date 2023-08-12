@@ -9,6 +9,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"jackthomson.com/functions/services"
 	"jackthomson.com/functions/utils"
 )
 
@@ -49,7 +50,7 @@ func GetDevices(w http.ResponseWriter, r *http.Request) {
 
 	var devices []Device
 
-	if err := utils.ReadAllFromDataStore("Device", &devices); err != nil {
+	if err := services.ReadAllFromDataStore("Device", &devices); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

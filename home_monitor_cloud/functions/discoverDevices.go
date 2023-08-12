@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"jackthomson.com/functions/models"
+	"jackthomson.com/functions/services"
 	"jackthomson.com/functions/utils"
 )
 
@@ -67,7 +68,7 @@ func DiscoverDevices(w http.ResponseWriter, r *http.Request) {
 
 	for _, device := range data.Devices {
 		key := datastore.NameKey("Device", device.DeviceId, nil)
-		_, err := utils.WriteToDatastore(key, &DiscoveryDataStore{
+		_, err := services.WriteToDatastore(key, &DiscoveryDataStore{
 			Alias:      device.Alias,
 			Ip:         device.Ip,
 			Feature:    device.Feature,
