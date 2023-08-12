@@ -162,3 +162,20 @@ resource "google_project_iam_member" "send_command_service_account_member_roles"
   role   = each.key
   member = "serviceAccount:${google_service_account.send_command_service_account.email}"
 }
+
+#### Get Energy Consumption service account
+resource "google_service_account" "get_energy_consumption_service_account" {
+  account_id   = "get-energy-consumption-iam-sa"
+  project      = var.project
+  display_name = "Get Energy Consumption Service Account used for the Get Energy Consumption function"
+}
+
+resource "google_project_iam_member" "get_energy_consumption_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/secretmanager.secretAccessor",
+    "roles/bigquery.dataViewer",
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.get_energy_consumption_service_account.email}"
+}

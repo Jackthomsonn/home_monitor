@@ -81,3 +81,6 @@ jobs:
       - name: Deploy SendCommand function
         if: steps.functions-have-changed.outputs.any_changed == 'true'
         run: cd home_monitor_cloud/functions && gcloud functions deploy SendCommand --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account send-command-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
+      - name: Deploy GetEnergyConsumption function
+        if: steps.functions-have-changed.outputs.any_changed == 'true'
+        run: cd home_monitor_cloud/functions && gcloud functions deploy GetEnergyConsumption --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account get-energy-consumption-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
