@@ -4,27 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"jackthomson.com/functions/models"
 	"jackthomson.com/functions/services"
-	"jackthomson.com/functions/utils"
 )
 
 func GetEnergyConsumption(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	var originToUse string = "https://home-monitor.vercel.app"
 
-	api_key := r.Header.Get("api_key")
-
-	if err := utils.CheckApiKey(api_key); err != nil {
-		utils.Logger().Error("Error checking API key", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(err)
-		return
+	if os.Getenv("DEVELOPMENT_MODE") == "true" {
+		originToUse = "http://localhost:5173"
 	}
+
+	w.Header().Set("Access-Control-Allow-Origin", originToUse)
 
 	query := `SELECT REGEXP_EXTRACT(payload, r'alias: ([^,}]+)') AS alias, REGEXP_EXTRACT(payload, r'power_mw: (\d+)') AS power_mw, timestamp FROM ` + "`home-monitor-373013.home_monitor_dataset.home_monitor_table`" + ` WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR) ORDER BY timestamp DESC`
 
