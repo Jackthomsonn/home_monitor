@@ -60,7 +60,8 @@ resource "google_project_iam_member" "ingest_data_iam_service_account_member_rol
   project = var.project
   for_each = toset([
     "roles/bigquery.dataEditor",
-    "roles/secretmanager.secretAccessor"
+    "roles/secretmanager.secretAccessor",
+    "roles/bigquery.jobUser"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.ingest_data_iam_service_account.email}"
@@ -174,7 +175,7 @@ resource "google_project_iam_member" "get_energy_consumption_service_account_mem
   project = var.project
   for_each = toset([
     "roles/secretmanager.secretAccessor",
-    "roles/bigquery.dataViewer",
+    "roles/bigquery.jobUser",
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.get_energy_consumption_service_account.email}"
