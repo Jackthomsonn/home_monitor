@@ -65,6 +65,11 @@ func ingestHomeTotals() (datastore.Key, error) {
 		return datastore.Key{}, err
 	}
 
+	if it.TotalRows == 0 {
+		utils.Logger().Info("No data to ingest")
+		return datastore.Key{}, nil
+	}
+
 	var row RowResponse
 	err = it.Next(&row)
 

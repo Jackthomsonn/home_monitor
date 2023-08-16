@@ -31,6 +31,13 @@ func IngestConsumptionData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.Values == nil {
+		utils.Logger().Info("No consumption data to ingest")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	response.Values = response.Values[:len(response.Values)-1]
 
 	bigqueryErr := services.InsertDataIntoBiqQuery(context.Background(), response.Values, "home_monitor_consumption_table")

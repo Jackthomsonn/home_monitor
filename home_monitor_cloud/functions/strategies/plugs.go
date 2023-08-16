@@ -33,6 +33,12 @@ func GetPlugConsumptionData() (models.ConsumptionResponse, error) {
 		})
 	}
 
+	if len(response) == 0 {
+		return models.ConsumptionResponse{
+			Values: nil,
+		}, nil
+	}
+
 	return models.ConsumptionResponse{
 		Values:            values,
 		Start:             response[len(response)-1].Timestamp.Format(time.RFC3339),

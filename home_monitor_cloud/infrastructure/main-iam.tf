@@ -174,8 +174,10 @@ resource "google_service_account" "get_energy_consumption_service_account" {
 resource "google_project_iam_member" "get_energy_consumption_service_account_member_roles" {
   project = var.project
   for_each = toset([
+    "roles/bigquery.dataViewer",
     "roles/secretmanager.secretAccessor",
     "roles/bigquery.jobUser",
+    "roles/datastore.user"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.get_energy_consumption_service_account.email}"
