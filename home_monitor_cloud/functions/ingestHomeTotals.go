@@ -56,7 +56,48 @@ func ingestHomeTotals() (datastore.Key, error) {
 
 	defer client.Close()
 
-	query := client.Query("SELECT `home-monitor-373013.home_monitor_dataset.home_monitor_carbon_intensity`.timestamp as ts, MAX(`home-monitor-373013.home_monitor_dataset.home_monitor_carbon_intensity`.actual) as carbonIntensity, MAX(`home_monitor_dataset.home_monitor_consumption_table`.value) as consumption, FROM `home-monitor-373013.home_monitor_dataset.home_monitor_carbon_intensity` INNER JOIN `home_monitor_dataset.home_monitor_consumption_table` ON `home-monitor-373013.home_monitor_dataset.home_monitor_carbon_intensity`.timestamp = `home_monitor_dataset.home_monitor_consumption_table`.timestamp WHERE DATE(`home-monitor-373013.home_monitor_dataset.home_monitor_carbon_intensity`.timestamp) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY) AND Date(`home-monitor-373013.home_monitor_dataset.home_monitor_carbon_intensity`.timestamp) >= DATE_TRUNC(DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY), DAY) GROUP BY ts ORDER BY ts ASC")
+	queryStr := `
+WITH
+Last24Hours AS (
+SELECT
+    timestamp AS table1_timestamp,
+    CAST(REGEXP_EXTRACT(payload, r'current_ma: (\d+)') AS INT64) AS current_ma,
+    CAST(REGEXP_EXTRACT(payload, r'voltage_mv: (\d+)') AS INT64) AS voltage_mV,
+    (CAST(REGEXP_EXTRACT(payload, r'current_ma: (\d+)') AS INT64) * CAST(REGEXP_EXTRACT(payload, r'voltage_mv: (\d+)') AS INT64)) / 1000000 AS power_mw
+FROM
+    ` + "`home-monitor-373013.home_monitor_dataset.home_monitor_table`" + `
+WHERE
+    TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), timestamp, HOUR) <= 24
+    AND REGEXP_EXTRACT(payload, r'current_ma: (\d+)') IS NOT NULL
+    AND REGEXP_EXTRACT(payload, r'voltage_mv: (\d+)') IS NOT NULL ),
+HourlyConsumption AS (
+SELECT
+    TIMESTAMP_TRUNC(table1_timestamp, HOUR) AS hour_start,
+    SUM(power_mW) AS consumption_mw
+FROM
+    Last24Hours
+GROUP BY
+    hour_start ),
+CarbonCalculation AS (
+SELECT
+    h.hour_start,
+    h.consumption_mw,
+    c.actual AS carbonIntensity
+FROM
+    HourlyConsumption h
+JOIN
+    ` + "`home-monitor-373013.home_monitor_dataset.home_monitor_carbon_intensity`" + ` c
+ON
+    h.hour_start = c.timestamp )
+SELECT
+    ROUND(SUM(consumption_mw) / 1000000, 2) AS consumption,
+    -- Convert from mWh to kWh
+    ROUND(SUM((consumption_mw / 1000000) * carbonIntensity), 2) AS carbonIntensity
+FROM
+    CarbonCalculation;
+`
+
+	query := client.Query(queryStr)
 
 	it, err := query.Read(context.Background())
 
@@ -65,12 +106,8 @@ func ingestHomeTotals() (datastore.Key, error) {
 		return datastore.Key{}, err
 	}
 
-	if it.TotalRows == 0 {
-		utils.Logger().Info("No data to ingest")
-		return datastore.Key{}, nil
-	}
-
 	var row RowResponse
+
 	err = it.Next(&row)
 
 	if err == iterator.Done {
@@ -78,27 +115,7 @@ func ingestHomeTotals() (datastore.Key, error) {
 		return datastore.Key{}, err
 	}
 
-	var carbonTotal float64
-	var consumptionTotal float64
-
-	for {
-		var row RowResponse
-		if err := it.Next(&row); err == iterator.Done {
-			break
-		}
-
-		if err != nil {
-			return datastore.Key{}, err
-		}
-
-		carbonTotal += row.CarbonIntensity * row.Consumption
-		consumptionTotal += row.Consumption
-	}
-
-	carbonTotal = float64(int(carbonTotal*100)) / 100
-	consumptionTotal = float64(int(consumptionTotal*100)) / 100
-
-	key, err := services.WriteToDatastore(datastore.NameKey("Total", "total", nil), &UserTotalsResponse{CarbonTotal: carbonTotal, ConsumptionTotal: consumptionTotal})
+	key, err := services.WriteToDatastore(datastore.NameKey("Total", "total", nil), &UserTotalsResponse{CarbonTotal: row.CarbonIntensity, ConsumptionTotal: row.Consumption})
 
 	if err != nil {
 		utils.Logger().Error("Error writing to datastore", zap.Field{Key: "error", Type: zapcore.ReflectType, Interface: err})
