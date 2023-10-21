@@ -31,7 +31,7 @@
     "swr": "^2.2.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.6",
-    "zod": "^3.21.4"
+    "zod": "^3.22.3"
   },
   "devDependencies": {
     "@types/luxon": "^3.3.1",
