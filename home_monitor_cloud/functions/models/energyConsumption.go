@@ -4,6 +4,6 @@ import "time"
 
 type EnergyConsumption struct {
 	Timestamp time.Time `json:"timestamp"`
-	PowerMw   float32   `json:"power_mw"`
+	Power_Mw  float64   `json:"power_mw"`
 	Alias     string    `json:"alias"`
 }

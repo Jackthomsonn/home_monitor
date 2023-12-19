@@ -2,5 +2,5 @@ package models
 
 type ConsumptionValues struct {
 	Timestamp string  `json:"timestamp"`
-	Value     float32 `json:"value"`
+	Value     float64 `json:"value"`
 }
