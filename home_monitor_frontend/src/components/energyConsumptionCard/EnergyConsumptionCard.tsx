@@ -67,7 +67,7 @@ export const EnergyConsumptionCard = (_props: PropsWithChildren<EnergyConsumptio
       <Card>
         <CardHeader>
           <CardTitle>Energy consumption</CardTitle>
-          <CardDescription>Your energy consumption over the last 1 hour (kWh)</CardDescription>
+          <CardDescription>Your energy consumption over the last 1 hour</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           {Object.keys(totals ?? []).map((key) => {
@@ -75,8 +75,8 @@ export const EnergyConsumptionCard = (_props: PropsWithChildren<EnergyConsumptio
               <div key={key} className="bg-violet-50 p-4 rounded-lg flex items-start">
                 <InfoIcon />
                 <p className="pl-2 text-sm">
-                  Your {key} has consumed <span className="font-bold text-green-500">{totals[key] / 100000}</span> kWh
-                  of power in the last 1 hour
+                  Your {key} has consumed <span className="font-bold text-green-500">{totals[key]}</span> wh of power in
+                  the last 1 hour
                 </p>
               </div>
             );
