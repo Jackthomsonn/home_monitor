@@ -3,7 +3,6 @@ package functions
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -17,14 +16,8 @@ import (
 func GetTotalsForHome(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	var originToUse string = "https://jackthomson.co.uk"
-
-	if os.Getenv("DEVELOPMENT_MODE") == "true" {
-		originToUse = "http://localhost:5173"
-	}
-
-	w.Header().Set("Access-Control-Allow-Origin", originToUse)
 	response, err := getTotalsForHome()
 
 	if err != nil {
