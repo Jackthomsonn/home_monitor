@@ -47,14 +47,9 @@ export const EnergyConsumptionCard = (_props: PropsWithChildren<EnergyConsumptio
     refreshInterval: 60_000,
   });
 
-  energyConsumption?.push({
-    alias: "solar",
-    power_mw: 98293,
-    timestamp: 0,
-  });
-
-  const totals = energyConsumption?.reduce((a: EnergyConsumption, b: EnergyConsumption) => {
-    const key = b.alias as keyof EnergyConsumption;
+  // rome-ignore lint/suspicious/noExplicitAny: this is fine to do here
+  const totals = energyConsumption?.reduce((a: any, b: any) => {
+    const key = b.alias;
 
     if (a[key]) {
       a[key] += b.power_mw;
