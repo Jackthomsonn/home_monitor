@@ -47,25 +47,6 @@ module "state-pubsub" {
   ]
 }
 
-module "consumption-ingestion-pubsub" {
-  source     = "./modules/pubsub"
-  project    = var.project
-  topic_name = "consumption-ingestion"
-
-  retry_policy = [{
-    minimum_backoff = "300s"
-    maximum_backoff = "300s"
-  }]
-
-  push_config = [{
-    push_endpoint = "https://${var.region}-${var.project}.cloudfunctions.net/IngestConsumptionData"
-  }]
-
-  depends_on_config = [
-    module.project_services
-  ]
-}
-
 module "carbon-intensity-ingestion-pubsub" {
   source     = "./modules/pubsub"
   project    = var.project
@@ -86,10 +67,10 @@ module "carbon-intensity-ingestion-pubsub" {
   ]
 }
 
-module "home-totals-ingestion-pubsub" {
+module "home-totals-aggregation-pubsub" {
   source     = "./modules/pubsub"
   project    = var.project
-  topic_name = "home-totals-ingestion"
+  topic_name = "home-totals-aggregation"
 
   retry_policy = [{
     minimum_backoff = "10s"
@@ -98,7 +79,7 @@ module "home-totals-ingestion-pubsub" {
   max_delivery_attempts = 10
 
   push_config = [{
-    push_endpoint = "https://${var.region}-${var.project}.cloudfunctions.net/IngestHomeTotals"
+    push_endpoint = "https://${var.region}-${var.project}.cloudfunctions.net/AggregateHomeTotals"
   }]
 
   depends_on_config = [

@@ -35,23 +35,6 @@ module "bigquery" {
     ]
     EOF
     }, {
-    name                = "home_monitor_consumption_table"
-    deletion_protection = true
-    schema              = <<EOF
-    [
-      {
-        "name": "timestamp",
-        "type": "TIMESTAMP",
-        "description": "The timestamp at which the consumption data was recorded"
-      },
-      {
-        "name": "value",
-        "type": "FLOAT",
-        "description": "The value of the consumption in kWh"
-      }
-    ]
-    EOF
-    }, {
     name                = "home_monitor_carbon_intensity"
     deletion_protection = true
     schema              = <<EOF

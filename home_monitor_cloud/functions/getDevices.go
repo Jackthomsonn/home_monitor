@@ -2,7 +2,6 @@ package functions
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 
@@ -46,7 +45,7 @@ func GetDevices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Getting devices")
+	utils.Logger().Info("Getting devices", zap.Field{Key: "function", Type: zapcore.ReflectType, Interface: "GetDevices"})
 
 	var devices []Device
 

@@ -3,7 +3,11 @@ resource "google_secret_manager_secret" "consumption_secret" {
   project   = var.project
 
   replication {
-    automatic = true
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
 
   depends_on = [
@@ -25,7 +29,11 @@ resource "google_secret_manager_secret" "redis_connection_string" {
   project   = var.project
 
   replication {
-    automatic = true
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
 
   depends_on = [
@@ -46,7 +54,11 @@ resource "google_secret_manager_secret" "emqx_host" {
   project   = var.project
 
   replication {
-    automatic = true
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
 
   depends_on = [
@@ -67,7 +79,11 @@ resource "google_secret_manager_secret" "api_key" {
   project   = var.project
 
   replication {
-    automatic = true
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
 
   depends_on = [

@@ -25,13 +25,13 @@ type RowResponse struct {
 	Consumption     float64 `json:"consumption,omitempty"`
 }
 
-func IngestHomeTotals(w http.ResponseWriter, r *http.Request) {
-	utils.Logger().Info("IngestHomeTotals", zap.Field{Key: "method", Type: zapcore.StringType, String: r.Method}, zap.Field{Key: "url", Type: zapcore.StringType, String: r.URL.String()})
+func AggregateHomeTotals(w http.ResponseWriter, r *http.Request) {
+	utils.Logger().Info("AggregateHomeTotals", zap.Field{Key: "method", Type: zapcore.StringType, String: r.Method}, zap.Field{Key: "url", Type: zapcore.StringType, String: r.URL.String()})
 	w.Header().Set("Content-Type", "application/json")
 
 	defer r.Body.Close()
 
-	key, err := ingestHomeTotals()
+	key, err := aggregateHomeTotals()
 	if err != nil {
 		utils.Logger().Error("Error ingesting home totals", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -44,8 +44,8 @@ func IngestHomeTotals(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(ResponseType{Type: "Success", Id: key.String()})
 }
 
-func ingestHomeTotals() (datastore.Key, error) {
-	utils.Logger().Info("Ingesting home totals", zap.Field{Key: "function", Type: zapcore.ReflectType, Interface: "IngestHomeTotals"})
+func aggregateHomeTotals() (datastore.Key, error) {
+	utils.Logger().Info("Ingesting home totals", zap.Field{Key: "function", Type: zapcore.ReflectType, Interface: "AggregateHomeTotals"})
 
 	client, err := bigquery.NewClient(context.Background(), "home-monitor-373013")
 
@@ -122,7 +122,7 @@ FROM
 		return datastore.Key{}, err
 	}
 
-	utils.Logger().Info("Successfully ingested home totals", zap.Field{Key: "function", Type: zapcore.ReflectType, Interface: "IngestHomeTotals"})
+	utils.Logger().Info("Successfully ingested home totals", zap.Field{Key: "function", Type: zapcore.ReflectType, Interface: "AggregateHomeTotals"})
 
 	if err := services.RemoveDataFromRedis("Total"); err != nil {
 		utils.Logger().Error("Error removing data from redis", zap.Error(err))
