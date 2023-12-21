@@ -4,8 +4,7 @@ import useSWR from "swr";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 
 export type EnergyConsumption = {
-  power_mw: number;
-  timestamp: number;
+  power_wh_avg: number;
   alias: string;
 };
 
@@ -47,21 +46,6 @@ export const EnergyConsumptionCard = (_props: PropsWithChildren<EnergyConsumptio
     refreshInterval: 60_000,
   });
 
-  // rome-ignore lint/suspicious/noExplicitAny: this is fine to do here
-  const totals = energyConsumption?.reduce((a: any, b: any) => {
-    const key = b.alias;
-
-    if (a[key]) {
-      a[key] += b.power_mw;
-    } else {
-      a[key] = b.power_mw;
-    }
-
-    return a;
-  }, []);
-
-  console.log(totals);
-
   return (
     <>
       <Card>
@@ -70,13 +54,14 @@ export const EnergyConsumptionCard = (_props: PropsWithChildren<EnergyConsumptio
           <CardDescription>Your energy consumption over the last 1 hour</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          {Object.keys(totals ?? []).map((key) => {
+          {energyConsumption?.map((ec) => {
             return (
-              <div key={key} className="bg-violet-50 p-4 rounded-lg flex items-start">
+              <div key={ec.alias} className="bg-violet-50 p-4 rounded-lg flex items-start">
                 <InfoIcon />
                 <p className="pl-2 text-sm">
-                  Your {key} has consumed <span className="font-bold text-green-500">{totals[key]}</span> wh of power in
-                  the last 1 hour
+                  Your {ec.alias} has consumed on average{" "}
+                  <span className="font-bold text-green-500">{ec.power_wh_avg.toLocaleString("en-GB")}</span> wh of
+                  power in the last 1 hour
                 </p>
               </div>
             );

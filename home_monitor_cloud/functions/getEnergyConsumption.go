@@ -22,7 +22,7 @@ func GetEnergyConsumption(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", originToUse)
 
-	query := `SELECT REGEXP_EXTRACT(payload, r'alias: ([^,}]+)') AS alias, SAFE_CAST(REGEXP_EXTRACT(payload, r'power_mw: (\d+)') AS FLOAT64) AS power_mw, timestamp FROM ` + "`home-monitor-373013.home_monitor_dataset.home_monitor_table`" + ` WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR) ORDER BY timestamp DESC`
+	query := `SELECT REGEXP_EXTRACT(payload, r'alias: ([^,}]+)') AS alias, CEIL(AVG(CAST(REGEXP_EXTRACT(payload, r'power_mw: (\d+)') as INT64) )) as power_wh_avg FROM ` + "`home-monitor-373013.home_monitor_dataset.home_monitor_table`" + ` WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR) GROUP BY alias`
 
 	response, err := services.GetDataFromBigQuery[models.EnergyConsumption](context.Background(), "home_monitor_table", query)
 
