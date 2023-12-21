@@ -1,4 +1,4 @@
-import { InfoIcon } from "lucide-react";
+import { AlertTriangleIcon, InfoIcon, Loader2Icon } from "lucide-react";
 import { PropsWithChildren } from "react";
 import useSWR from "swr";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
@@ -38,13 +38,41 @@ const getHomeTotals = async () => {
 };
 
 export const EnergyConsumptionCard = (_props: PropsWithChildren<EnergyConsumptionCardProps>) => {
-  const { data: energyConsumption } = useSWR<EnergyConsumption[]>("energy_consumption", getEnergyConsumption, {
+  const {
+    data: energyConsumption,
+    error: energyConsumptionError,
+    isLoading: energyConsumptionIsLoading,
+  } = useSWR<EnergyConsumption[]>("energy_consumption", getEnergyConsumption, {
     refreshInterval: 60_000,
   });
 
-  const { data: homeTotals } = useSWR<HomeTotals>("home_totals", getHomeTotals, {
+  const {
+    data: homeTotals,
+    error: homeTotalsError,
+    isLoading: homeTotalsIsLoading,
+  } = useSWR<HomeTotals>("home_totals", getHomeTotals, {
     refreshInterval: 60_000,
   });
+
+  if (energyConsumptionIsLoading || homeTotalsIsLoading) {
+    return (
+      <Card className="flex justify-center items-center">
+        <CardTitle className="text-md flex items-center">
+          <Loader2Icon className="mr-2 animate-spin" /> Loading...
+        </CardTitle>
+      </Card>
+    );
+  }
+
+  if (energyConsumptionError || homeTotalsError) {
+    return (
+      <Card className="flex justify-center items-center">
+        <CardTitle className="text-md flex items-center text-red-500">
+          <AlertTriangleIcon className="mr-2" /> Error loading data. Try again later
+        </CardTitle>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -60,7 +88,7 @@ export const EnergyConsumptionCard = (_props: PropsWithChildren<EnergyConsumptio
                 <InfoIcon />
                 <p className="pl-2 text-sm">
                   Your {ec.alias} has consumed on average{" "}
-                  <span className="font-bold text-green-500">{ec.power_wh_avg.toLocaleString("en-GB")}</span> wh of
+                  <span className="font-bold text-green-500">{ec.power_wh_avg?.toLocaleString("en-GB")}</span> wh of
                   power in the last 1 hour
                 </p>
               </div>

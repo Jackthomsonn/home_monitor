@@ -1,4 +1,4 @@
-import { Loader2, Power } from "lucide-react";
+import { AlertTriangleIcon, Loader2, Loader2Icon, Power } from "lucide-react";
 import { PropsWithChildren } from "react";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
@@ -65,7 +65,7 @@ const getDevices = async () => {
 };
 
 export const DeviceCard = (_props: PropsWithChildren<DeviceCardProps>) => {
-  const { data: devices } = useSWR<Device[]>("devices", getDevices);
+  const { data: devices, error: devicesError, isLoading: devicesIsLoading } = useSWR<Device[]>("devices", getDevices);
 
   const { trigger: sendCommandTrigger, isMutating: sendCommandIsMutating } = useSWRMutation("devices", sendCommand, {
     optimisticData: (arg: Device[]) => {
@@ -87,6 +87,26 @@ export const DeviceCard = (_props: PropsWithChildren<DeviceCardProps>) => {
     discoverDevices,
     { revalidate: false },
   );
+
+  if (devicesIsLoading) {
+    return (
+      <Card className="flex justify-center items-center">
+        <CardTitle className="text-md flex items-center">
+          <Loader2Icon className="mr-2 animate-spin" /> Loading...
+        </CardTitle>
+      </Card>
+    );
+  }
+
+  if (devicesError) {
+    return (
+      <Card className="flex justify-center items-center">
+        <CardTitle className="text-md flex items-center text-red-500">
+          <AlertTriangleIcon className="mr-2" /> Error loading data. Try again later
+        </CardTitle>
+      </Card>
+    );
+  }
 
   return (
     <Card>
