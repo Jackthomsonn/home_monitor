@@ -38,6 +38,43 @@ jobs:
     permissions:
       contents: "read"
 
+    strategy:
+      matrix:
+        function:
+          - PublishData
+          - IngestCarbonIntensityData
+          - GetTotalsForHome
+          - AggregateHomeTotals
+          - TriggerConsumptionData
+          - GetDevices
+          - SendCommand
+          - GetEnergyConsumption
+        include:
+          - function: PublishData
+            service_account: publish-data-iam-sa@home-monitor-373013.iam.gserviceaccount.com
+            path: home_monitor_cloud/functions/PublishData/**
+          - function: IngestCarbonIntensityData
+            service_account: ingest-data-iam-sa@home-monitor-373013.iam.gserviceaccount.com
+            path: home_monitor_cloud/functions/IngestCarbonIntensityData/**
+          - function: GetTotalsForHome
+            service_account: get-totals-for-home-iam-sa@home-monitor-373013.iam.gserviceaccount.com
+            path: home_monitor_cloud/functions/GetTotalsForHome/**
+          - function: AggregateHomeTotals
+            service_account: ingest-home-totals-iam-sa@home-monitor-373013.iam.gserviceaccount.com
+            path: home_monitor_cloud/functions/AggregateHomeTotals/**
+          - function: TriggerConsumptionData
+            service_account: trigger-consumption-data-iam-sa@home-monitor-373013.iam.gserviceaccount.com
+            path: home_monitor_cloud/functions/TriggerConsumptionData/**
+          - function: GetDevices
+            service_account: get-devices-iam-sa@home-monitor-373013.iam.gserviceaccount.com
+            path: home_monitor_cloud/functions/GetDevices/**
+          - function: SendCommand
+            service_account: send-command-iam-sa@home-monitor-373013.iam.gserviceaccount.com
+            path: home_monitor_cloud/functions/SendCommand/**
+          - function: GetEnergyConsumption
+            service_account: get-energy-consumption-iam-sa@home-monitor-373013.iam.gserviceaccount.com
+            path: home_monitor_cloud/functions/GetEnergyConsumption/**
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -49,32 +86,23 @@ jobs:
         uses: "google-github-actions/setup-gcloud@v1"
         with:
           version: ">= 363.0.0"
-      - name: Determine if any functions have changed
-        id: functions-have-changed
+      - name: Check if functions have changed
+        id: check-changed
         uses: tj-actions/changed-files@v35
         with:
-          files: home_monitor_cloud/functions/**/*
-      - name: Deploy PublishData function
-        if: steps.functions-have-changed.outputs.any_changed == 'true'
-        run: cd home_monitor_cloud/functions && gcloud functions deploy PublishData --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --project home-monitor-373013
-      - name: Deploy IngestCarbonIntensityData function
-        if: steps.functions-have-changed.outputs.any_changed == 'true'
-        run: cd home_monitor_cloud/functions && gcloud functions deploy IngestCarbonIntensityData --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account ingest-data-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
-      - name: Deploy GetTotalsForHome function
-        if: steps.functions-have-changed.outputs.any_changed == 'true'
-        run: cd home_monitor_cloud/functions && gcloud functions deploy GetTotalsForHome --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account get-totals-for-home-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
-      - name: Deploy AggregateHomeTotals function
-        if: steps.functions-have-changed.outputs.any_changed == 'true'
-        run: cd home_monitor_cloud/functions && gcloud functions deploy AggregateHomeTotals --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account ingest-home-totals-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
-      - name: Deploy TriggerConsumptionData function
-        if: steps.functions-have-changed.outputs.any_changed == 'true'
-        run: cd home_monitor_cloud/functions && gcloud functions deploy TriggerConsumptionData --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --project home-monitor-373013
-      - name: Deploy GetDevices function
-        if: steps.functions-have-changed.outputs.any_changed == 'true'
-        run: cd home_monitor_cloud/functions && gcloud functions deploy GetDevices --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account get-devices-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
-      - name: Deploy SendCommand function
-        if: steps.functions-have-changed.outputs.any_changed == 'true'
-        run: cd home_monitor_cloud/functions && gcloud functions deploy SendCommand --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account send-command-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
-      - name: Deploy GetEnergyConsumption function
-        if: steps.functions-have-changed.outputs.any_changed == 'true'
-        run: cd home_monitor_cloud/functions && gcloud functions deploy GetEnergyConsumption --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account get-energy-consumption-iam-sa@home-monitor-373013.iam.gserviceaccount.com --project home-monitor-373013
+          files: |
+            home_monitor_cloud/functions/PublishData/**
+            home_monitor_cloud/functions/IngestCarbonIntensityData/**
+            home_monitor_cloud/functions/GetTotalsForHome/**
+            home_monitor_cloud/functions/AggregateHomeTotals/**
+            home_monitor_cloud/functions/TriggerConsumptionData/**
+            home_monitor_cloud/functions/GetDevices/**
+            home_monitor_cloud/functions/SendCommand/**
+            home_monitor_cloud/functions/GetEnergyConsumption/**
+      - name: Deploy function
+        if: contains(steps.check-changed.outputs.all_changed_files, matrix.path)
+        run: |
+          cd home_monitor_cloud/functions
+          gcloud functions deploy ${{ matrix.function }} --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 ${SERVICE_ACCOUNT_ARG} --project home-monitor-373013
+        env:
+          SERVICE_ACCOUNT_ARG: "--service-account=${{ matrix.service_account }}"
