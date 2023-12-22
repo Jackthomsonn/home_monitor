@@ -100,7 +100,7 @@ jobs:
             home_monitor_cloud/functions/SendCommand/**
             home_monitor_cloud/functions/GetEnergyConsumption/**
       - name: Deploy function
-        if: contains(steps.check-changed.outputs.all_changed_files, matrix.path)
+        if: contains(${{ steps.check-changed.outputs.all_changed_files }}, ${{ matrix.path }})
         run: |
           cd home_monitor_cloud/functions
           gcloud functions deploy ${{ matrix.function }} --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 ${SERVICE_ACCOUNT_ARG} --project home-monitor-373013
