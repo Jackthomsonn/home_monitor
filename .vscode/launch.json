@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch",
+      "mode": "debug",
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/home_monitor_cloud/functions/cmd"
+    }
+  ]
+}
