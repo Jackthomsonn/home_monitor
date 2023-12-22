@@ -86,21 +86,7 @@ jobs:
         uses: "google-github-actions/setup-gcloud@v1"
         with:
           version: ">= 363.0.0"
-      - name: Check if functions have changed
-        id: check-changed
-        uses: tj-actions/changed-files@v35
-        with:
-          files: |
-            home_monitor_cloud/functions/PublishData/**
-            home_monitor_cloud/functions/IngestCarbonIntensityData/**
-            home_monitor_cloud/functions/GetTotalsForHome/**
-            home_monitor_cloud/functions/AggregateHomeTotals/**
-            home_monitor_cloud/functions/TriggerConsumptionData/**
-            home_monitor_cloud/functions/GetDevices/**
-            home_monitor_cloud/functions/SendCommand/**
-            home_monitor_cloud/functions/GetEnergyConsumption/**
       - name: Deploy function
-        if: contains(${{ steps.check-changed.outputs.all_changed_files }}, ${{ matrix.path }})
         run: |
           cd home_monitor_cloud/functions
           gcloud functions deploy ${{ matrix.function }} --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 ${SERVICE_ACCOUNT_ARG} --project home-monitor-373013
