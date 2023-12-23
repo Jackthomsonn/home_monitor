@@ -86,13 +86,9 @@ jobs:
         uses: "google-github-actions/setup-gcloud@v1"
         with:
           version: ">= 363.0.0"
-      - name: Set up Service Account Argument
-        run: |
-          if [ -n "${{ matrix.service_account }}" ]; then
-            echo "SERVICE_ACCOUNT_ARG=--service-account=${{ matrix.service_account }}" >> $GITHUB_ENV
-          else
-            echo "SERVICE_ACCOUNT_ARG=" >> $GITHUB_ENV
       - name: Deploy function
         run: |
           cd home_monitor_cloud/functions
           gcloud functions deploy ${{ matrix.function }} --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 ${SERVICE_ACCOUNT_ARG} --project home-monitor-373013
+        env:
+          SERVICE_ACCOUNT_ARG: ${{ matrix.service_account }}
