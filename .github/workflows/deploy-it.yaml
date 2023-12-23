@@ -89,6 +89,4 @@ jobs:
       - name: Deploy function
         run: |
           cd home_monitor_cloud/functions
-          gcloud functions deploy ${{ matrix.function }} --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account=${{ SERVICE_ACCOUNT_ARG }} --project home-monitor-373013
-        env:
-          SERVICE_ACCOUNT_ARG: ${{ matrix.service_account }}
+          gcloud functions deploy ${{ matrix.function }} --runtime go119 --trigger-http --allow-unauthenticated --region europe-west1 --service-account=${{ matrix.service_account }} --project home-monitor-373013
