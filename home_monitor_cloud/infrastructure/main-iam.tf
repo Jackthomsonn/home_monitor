@@ -182,3 +182,41 @@ resource "google_project_iam_member" "get_energy_consumption_service_account_mem
   role   = each.key
   member = "serviceAccount:${google_service_account.get_energy_consumption_service_account.email}"
 }
+
+#### Publish data service account
+resource "google_service_account" "publish_data_service_account" {
+  account_id   = "publish-data-iam-sa"
+  project      = var.project
+  display_name = "Publish data Service Account used for the publishing data from the Home Monitor device"
+}
+
+resource "google_project_iam_member" "publish_data_service_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/bigquery.dataViewer",
+    "roles/secretmanager.secretAccessor",
+    "roles/bigquery.jobUser",
+    "roles/datastore.user"
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.publish_data_service_account.email}"
+}
+
+#### Trigger Consumption data service account
+resource "google_service_account" "trigger_consumption_data_service_account" {
+  account_id   = "trigger-consumption-data-iam-sa"
+  project      = var.project
+  display_name = "Trigger Consumption data Service Account used for the Trigger Consumption data from the Home Monitor device"
+}
+
+resource "google_project_iam_member" "trigger_consumption_data_service_service_account_member_roles" {
+  project = var.project
+  for_each = toset([
+    "roles/bigquery.dataViewer",
+    "roles/secretmanager.secretAccessor",
+    "roles/bigquery.jobUser",
+    "roles/datastore.user"
+  ])
+  role   = each.key
+  member = "serviceAccount:${google_service_account.trigger_consumption_data_service_account.email}"
+}

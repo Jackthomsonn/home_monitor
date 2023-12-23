@@ -51,7 +51,7 @@ jobs:
           - GetEnergyConsumption
         include:
           - function: PublishData
-            service_account: ''
+            service_account: publish-data-iam-sa@home-monitor-373013.iam.gserviceaccount.com
             path: home_monitor_cloud/functions/PublishData/**
           - function: IngestCarbonIntensityData
             service_account: ingest-data-iam-sa@home-monitor-373013.iam.gserviceaccount.com
@@ -63,7 +63,7 @@ jobs:
             service_account: ingest-home-totals-iam-sa@home-monitor-373013.iam.gserviceaccount.com
             path: home_monitor_cloud/functions/AggregateHomeTotals/**
           - function: TriggerConsumptionData
-            service_account: ''
+            service_account: trigger-consumption-data-iam-sa@home-monitor-373013.iam.gserviceaccount.com
             path: home_monitor_cloud/functions/TriggerConsumptionData/**
           - function: GetDevices
             service_account: get-devices-iam-sa@home-monitor-373013.iam.gserviceaccount.com
