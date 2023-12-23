@@ -53,7 +53,7 @@ resource "google_project_iam_member" "editor" {
 resource "google_service_account" "ingest_data_iam_service_account" {
   account_id   = "ingest-data-iam-sa"
   project      = var.project
-  display_name = "Ingest Data IAM Service Account used for the Ingest data cloud function"
+  display_name = "Ingest Data IAM Service Account"
 }
 
 resource "google_project_iam_member" "ingest_data_iam_service_account_member_roles" {
@@ -73,7 +73,7 @@ resource "google_project_iam_member" "ingest_data_iam_service_account_member_rol
 resource "google_service_account" "get_totals_for_home_service_account" {
   account_id   = "get-totals-for-home-iam-sa"
   project      = var.project
-  display_name = "Get Totals For Home Service Account used for the Get Totals For Home function"
+  display_name = "Get Totals For Home Service Account"
 }
 
 resource "google_project_iam_member" "get_totals_for_home_service_account_member_roles" {
@@ -92,7 +92,7 @@ resource "google_project_iam_member" "get_totals_for_home_service_account_member
 resource "google_service_account" "ingest_home_totals_service_account" {
   account_id   = "ingest-home-totals-iam-sa"
   project      = var.project
-  display_name = "Ingest Home Totals Service Account used for the Ingest Home Totals function"
+  display_name = "Ingest Home Totals Service Account"
 }
 
 resource "google_project_iam_member" "ingest_home_totals_service_account_member_roles" {
@@ -113,7 +113,7 @@ resource "google_project_iam_member" "ingest_home_totals_service_account_member_
 resource "google_service_account" "discover_devices_service_account" {
   account_id   = "discover-devices-iam-sa"
   project      = var.project
-  display_name = "Discover Devices Service Account used for the Discover Devices function"
+  display_name = "Discover Devices Service Account"
 }
 
 resource "google_project_iam_member" "discover_devices_service_account_member_roles" {
@@ -132,7 +132,7 @@ resource "google_project_iam_member" "discover_devices_service_account_member_ro
 resource "google_service_account" "get_devices_service_account" {
   account_id   = "get-devices-iam-sa"
   project      = var.project
-  display_name = "Get Devices Service Account used for the Get Devices function"
+  display_name = "Get Devices Service Account"
 }
 
 resource "google_project_iam_member" "get_devices_service_account_member_roles" {
@@ -151,7 +151,7 @@ resource "google_project_iam_member" "get_devices_service_account_member_roles" 
 resource "google_service_account" "send_command_service_account" {
   account_id   = "send-command-iam-sa"
   project      = var.project
-  display_name = "Send Command Service Account used for the Send Command function"
+  display_name = "Send Command Service Account"
 }
 
 resource "google_project_iam_member" "send_command_service_account_member_roles" {
@@ -168,7 +168,7 @@ resource "google_project_iam_member" "send_command_service_account_member_roles"
 resource "google_service_account" "get_energy_consumption_service_account" {
   account_id   = "get-energy-consumption-iam-sa"
   project      = var.project
-  display_name = "Get Energy Consumption Service Account used for the Get Energy Consumption function"
+  display_name = "Get Energy Consumption Service Account"
 }
 
 resource "google_project_iam_member" "get_energy_consumption_service_account_member_roles" {
@@ -187,7 +187,7 @@ resource "google_project_iam_member" "get_energy_consumption_service_account_mem
 resource "google_service_account" "publish_data_service_account" {
   account_id   = "publish-data-iam-sa"
   project      = var.project
-  display_name = "Publish data Service Account used for the publishing data from the Home Monitor device"
+  display_name = "Publish data Service Account"
 }
 
 resource "google_project_iam_member" "publish_data_service_service_account_member_roles" {
@@ -206,7 +206,7 @@ resource "google_project_iam_member" "publish_data_service_service_account_membe
 resource "google_service_account" "trigger_consumption_data_service_account" {
   account_id   = "trigger-consumption-iam-sa"
   project      = var.project
-  display_name = "Trigger Consumption data Service Account used for the Trigger Consumption data from the Home Monitor device"
+  display_name = "Trigger Consumption data Service Account"
 }
 
 resource "google_project_iam_member" "trigger_consumption_data_service_service_account_member_roles" {
