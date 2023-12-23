@@ -90,6 +90,8 @@ jobs:
         run: |
           if [ -n "${{ matrix.service_account }}" ]; then
             echo "SERVICE_ACCOUNT_ARG=--service-account=${{ matrix.service_account }}" >> $GITHUB_ENV
+          else
+            echo "SERVICE_ACCOUNT_ARG=" >> $GITHUB_ENV
       - name: Deploy function
         run: |
           cd home_monitor_cloud/functions
