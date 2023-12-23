@@ -204,7 +204,7 @@ resource "google_project_iam_member" "publish_data_service_service_account_membe
 
 #### Trigger Consumption data service account
 resource "google_service_account" "trigger_consumption_data_service_account" {
-  account_id   = "trigger-consumption-data-iam-sa"
+  account_id   = "trigger-consumption-iam-sa"
   project      = var.project
   display_name = "Trigger Consumption data Service Account used for the Trigger Consumption data from the Home Monitor device"
 }
