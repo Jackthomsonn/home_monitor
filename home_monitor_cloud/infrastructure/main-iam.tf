@@ -196,7 +196,8 @@ resource "google_project_iam_member" "publish_data_service_service_account_membe
     "roles/bigquery.dataViewer",
     "roles/secretmanager.secretAccessor",
     "roles/bigquery.jobUser",
-    "roles/datastore.user"
+    "roles/datastore.user",
+    "roles/pubsub.publisher"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.publish_data_service_account.email}"
