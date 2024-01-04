@@ -22,7 +22,7 @@ jobs:
           version: ">= 363.0.0"
       - name: Determine if any infrastructure has changed
         id: infrastructure-has-changed
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v41
         with:
           files: home_monitor_cloud/infrastructure/*
       - name: Infrastructure-Apply
