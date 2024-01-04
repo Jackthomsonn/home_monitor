@@ -5,6 +5,7 @@ module "bigquery" {
   tables = [{
     name                = "home_monitor_table"
     deletion_protection = true
+    clustering          = ["client_id"]
     schema              = <<EOF
     [
       {
@@ -37,6 +38,7 @@ module "bigquery" {
     }, {
     name                = "home_monitor_carbon_intensity"
     deletion_protection = true
+    clustering          = []
     schema              = <<EOF
     [
       {

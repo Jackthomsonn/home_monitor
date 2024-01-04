@@ -74,6 +74,8 @@ jobs:
           - function: GetEnergyConsumption
             service_account: get-energy-consumption-iam-sa@home-monitor-373013.iam.gserviceaccount.com
             path: home_monitor_cloud/functions/GetEnergyConsumption/**
+          - function: DiscoverDevices
+            service_account: discover-devices-iam-sa@home-monitor-373013.iam.gserviceaccount.com
 
     steps:
       - name: Check out repository

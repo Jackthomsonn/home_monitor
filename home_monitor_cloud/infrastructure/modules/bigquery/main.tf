@@ -11,6 +11,9 @@ resource "google_bigquery_table" "big_query_table" {
   table_id            = each.value.name
   dataset_id          = google_bigquery_dataset.big_query_dataset.dataset_id
 
+
+  clustering = length(each.value.clustering) > 0 ? each.value.clustering : []
+
   schema = each.value.schema
 
   depends_on = [

@@ -4,6 +4,7 @@ variable "tables" {
     name                = string
     schema              = string
     deletion_protection = bool
+    clustering          = list(string)
   }))
 }
 
