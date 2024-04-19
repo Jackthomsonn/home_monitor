@@ -21,6 +21,10 @@ resource "google_pubsub_subscription" "topic_subscription" {
   project = var.project
   topic   = google_pubsub_topic.topic.name
 
+  expiration_policy {
+    ttl = ""
+  }
+
   dynamic "bigquery_config" {
     for_each = var.bigquery_config
     content {
