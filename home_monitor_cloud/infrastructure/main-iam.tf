@@ -216,7 +216,8 @@ resource "google_project_iam_member" "trigger_consumption_data_service_service_a
     "roles/bigquery.dataViewer",
     "roles/secretmanager.secretAccessor",
     "roles/bigquery.jobUser",
-    "roles/datastore.user"
+    "roles/datastore.user",
+    "roles/pubsub.publisher"
   ])
   role   = each.key
   member = "serviceAccount:${google_service_account.trigger_consumption_data_service_account.email}"
