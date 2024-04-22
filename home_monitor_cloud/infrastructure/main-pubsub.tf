@@ -56,6 +56,7 @@ module "carbon-intensity-ingestion-pubsub" {
     minimum_backoff = "10s"
     maximum_backoff = "20s"
   }]
+
   max_delivery_attempts = 10
 
   push_config = [{

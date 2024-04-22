@@ -62,7 +62,7 @@ func IngestCarbonIntensityData(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(ingestionValues)
 }
 
-func getCarbonIntensity(w http.ResponseWriter, previousDay string, now string) (models.CarbonintensityResponse, error) {
+func getCarbonIntensity(_ http.ResponseWriter, previousDay string, now string) (models.CarbonintensityResponse, error) {
 	utils.Logger().Info("GetCarbonIntensity", zap.Field{Key: "now", Type: zapcore.StringType, String: previousDay}, zap.Field{Key: "now", Type: zapcore.StringType, String: now})
 	result, err := http.Get(fmt.Sprintf("https://api.carbonintensity.org.uk/intensity/%s/%s", previousDay, now))
 
